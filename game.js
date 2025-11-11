@@ -7,7 +7,7 @@ canvas.width = 800;
 canvas.height = 400;
 
 // 게임 변수
-let gameSpeed = 6;
+let gameSpeed = 9;
 let gravity = 0.8;
 let score = 0;
 let highScore = localStorage.getItem('dinoHighScore') || 0;
@@ -47,7 +47,7 @@ const dino = {
             ctx.fillRect(this.x + 25, this.y + 10, 5, 5);
 
             // 다리 애니메이션
-            const legOffset = Math.floor(score / 5) % 2 === 0 ? 0 : 5;
+            const legOffset = Math.floor(score / 3) % 2 === 0 ? 0 : 5;
             ctx.fillStyle = '#2c3e50';
             ctx.fillRect(this.x + 10, this.y + this.height, 8, 10 + legOffset);
             ctx.fillRect(this.x + 25, this.y + this.height, 8, 10 - legOffset);
@@ -137,7 +137,7 @@ class Obstacle {
 // 장애물 배열
 let obstacles = [];
 let obstacleTimer = 0;
-let obstacleInterval = 90;
+let obstacleInterval = 70;
 
 // 바닥 그리기
 function drawGround() {
@@ -151,7 +151,7 @@ function drawGround() {
     // 바닥 패턴
     ctx.fillStyle = '#34495e';
     for (let i = 0; i < canvas.width; i += 30) {
-        const offset = (score * 2) % 30;
+        const offset = (score * 3) % 30;
         ctx.fillRect(i - offset, canvas.height - 95, 10, 2);
     }
 }
@@ -176,7 +176,7 @@ function drawClouds() {
         ctx.arc(cloud.x + 40, cloud.y, 15, 0, Math.PI * 2);
         ctx.fill();
 
-        cloud.x -= cloud.speed * 0.3;
+        cloud.x -= cloud.speed * 0.6;
         if (cloud.x < -100) {
             cloud.x = canvas.width + 50;
         }
@@ -190,9 +190,9 @@ function updateScore() {
         document.getElementById('score').textContent = Math.floor(score / 10);
 
         // 점수에 따라 속도 증가
-        if (score % 300 === 0) {
-            gameSpeed += 0.5;
-            obstacleInterval = Math.max(60, obstacleInterval - 5);
+        if (score % 200 === 0) {
+            gameSpeed += 0.8;
+            obstacleInterval = Math.max(40, obstacleInterval - 5);
         }
     }
 }
@@ -228,8 +228,8 @@ function startGame() {
     gameRunning = true;
     gameOver = false;
     score = 0;
-    gameSpeed = 6;
-    obstacleInterval = 90;
+    gameSpeed = 9;
+    obstacleInterval = 70;
     obstacles = [];
     obstacleTimer = 0;
     dino.y = 0;
