@@ -15,6 +15,7 @@ let gameOver = false;
 let lives = 3;
 let invincible = false;
 let invincibleTimer = 0;
+const MAX_SPEED = 13; // 최대 속도 제한
 
 // 공룡 객체
 const dino = {
@@ -31,30 +32,56 @@ const dino = {
         ctx.fillStyle = '#535353';
 
         if (this.ducking) {
-            // 숙인 자세 - 심플한 직사각형
-            ctx.fillRect(this.x, this.y + 33, this.width, 29);
-        } else {
-            // 일반 자세
-            // 머리
-            ctx.fillRect(this.x + 29, this.y, 29, 29);
+            // 숙인 자세
+            // 머리 (숙임)
+            ctx.fillRect(this.x + 29, this.y + 33, 29, 18);
             // 눈
             ctx.fillStyle = '#fff';
-            ctx.fillRect(this.x + 40, this.y + 8, 8, 8);
+            ctx.fillRect(this.x + 40, this.y + 38, 6, 6);
+
+            ctx.fillStyle = '#535353';
+            // 몸통 (숙임)
+            ctx.fillRect(this.x + 10, this.y + 43, 38, 18);
+            // 팔 (숙임)
+            ctx.fillRect(this.x, this.y + 48, 15, 8);
+            // 다리 (숙임)
+            const legOffset = (Math.floor(score / 5) % 2) * 4;
+            ctx.fillRect(this.x + 36, this.y + 51, 8, 10);
+            ctx.fillRect(this.x + 46, this.y + 51, 8, 10);
+        } else {
+            // 일반 자세
+            // 머리 (둥근 형태)
+            ctx.fillRect(this.x + 31, this.y, 22, 22);
+            // 입
+            ctx.fillRect(this.x + 53, this.y + 14, 5, 4);
+            // 눈
+            ctx.fillStyle = '#fff';
+            ctx.fillRect(this.x + 40, this.y + 6, 6, 6);
+            ctx.fillStyle = '#535353';
+            ctx.fillRect(this.x + 41, this.y + 7, 4, 4);
+
+            // 목
+            ctx.fillRect(this.x + 29, this.y + 22, 8, 10);
 
             // 몸통
-            ctx.fillStyle = '#535353';
-            ctx.fillRect(this.x + 20, this.y + 29, 38, 33);
+            ctx.fillRect(this.x + 18, this.y + 30, 32, 26);
 
-            // 팔
-            ctx.fillRect(this.x + 20, this.y + 29, 11, 20);
+            // 앞팔
+            ctx.fillRect(this.x + 18, this.y + 32, 8, 14);
 
-            // 다리
-            const legOffset = (Math.floor(score / 5) % 2) * 5;
-            ctx.fillRect(this.x + 21, this.y + 56, 9, 13 + legOffset);
-            ctx.fillRect(this.x + 40, this.y + 56, 9, 13 - legOffset);
+            // 뒷팔
+            ctx.fillRect(this.x + 8, this.y + 38, 12, 8);
+
+            // 다리 애니메이션
+            const legOffset = (Math.floor(score / 5) % 2) * 4;
+            // 앞다리
+            ctx.fillRect(this.x + 24, this.y + 56, 6, 6 + legOffset);
+            // 뒷다리
+            ctx.fillRect(this.x + 38, this.y + 56, 6, 6 - legOffset);
 
             // 꼬리
-            ctx.fillRect(this.x, this.y + 33, 21, 13);
+            ctx.fillRect(this.x, this.y + 32, 10, 16);
+            ctx.fillRect(this.x + 10, this.y + 36, 8, 8);
         }
     },
 
@@ -124,24 +151,56 @@ class Obstacle {
         ctx.fillStyle = '#535353';
 
         if (this.type === 'bird') {
-            // 새 - 매우 심플
-            // 몸
-            ctx.fillRect(this.x + 13, this.y + 13, 27, 13);
-            // 날개 (애니메이션)
-            const wingY = (Math.floor(this.frame) % 10 < 5) ? this.y : this.y + 7;
-            ctx.fillRect(this.x, wingY, 16, 11);
-            ctx.fillRect(this.x + 37, wingY, 16, 11);
+            // 새 - Chrome 스타일
+            const wingUp = (Math.floor(this.frame) % 10 < 5);
+
+            // 몸통
+            ctx.fillRect(this.x + 12, this.y + 12, 18, 12);
+            // 머리
+            ctx.fillRect(this.x + 8, this.y + 10, 8, 8);
+            // 부리
+            ctx.fillRect(this.x + 6, this.y + 12, 4, 4);
+
+            // 날개 애니메이션
+            if (wingUp) {
+                // 날개 위로
+                ctx.fillRect(this.x + 12, this.y + 4, 18, 8);
+            } else {
+                // 날개 아래로
+                ctx.fillRect(this.x + 12, this.y + 20, 18, 8);
+            }
+
+            // 꼬리
+            ctx.fillRect(this.x + 30, this.y + 14, 8, 8);
+
             this.frame += 0.2;
         } else if (this.type === 'cactus') {
-            // 단일 선인장
-            ctx.fillRect(this.x + 5, this.y, 12, this.height);
-            ctx.fillRect(this.x, this.y + 16, 11, 20);
+            // 단일 선인장 - 가시 추가
+            // 중앙 기둥
+            ctx.fillRect(this.x + 6, this.y, 10, this.height);
+
+            // 왼쪽 가시
+            ctx.fillRect(this.x + 2, this.y + 10, 4, 6);
+            ctx.fillRect(this.x + 4, this.y + 8, 2, 2);
+
+            // 오른쪽 가시
+            ctx.fillRect(this.x + 16, this.y + 10, 4, 6);
+            ctx.fillRect(this.x + 16, this.y + 8, 2, 2);
+
+            // 측면 팔
+            ctx.fillRect(this.x, this.y + 16, 6, 14);
+            ctx.fillRect(this.x + 16, this.y + 20, 6, 10);
         } else if (this.type === 'cactus2') {
             // 더블 선인장
-            ctx.fillRect(this.x + 5, this.y, 12, this.height);
-            ctx.fillRect(this.x, this.y + 16, 11, 20);
-            ctx.fillRect(this.x + 28, this.y, 12, this.height);
-            ctx.fillRect(this.x + 35, this.y + 16, 11, 20);
+            // 왼쪽 선인장
+            ctx.fillRect(this.x + 6, this.y, 10, this.height);
+            ctx.fillRect(this.x + 2, this.y + 10, 4, 6);
+            ctx.fillRect(this.x, this.y + 16, 6, 14);
+
+            // 오른쪽 선인장
+            ctx.fillRect(this.x + 28, this.y + 4, 10, this.height - 4);
+            ctx.fillRect(this.x + 24, this.y + 14, 4, 6);
+            ctx.fillRect(this.x + 38, this.y + 18, 6, 10);
         }
     }
 
@@ -341,10 +400,12 @@ function update() {
     // 점수 증가
     score += 0.1;
 
-    // 속도 증가
+    // 속도 증가 (천천히, 최대 속도 제한)
     if (Math.floor(score) % 100 === 0 && Math.floor(score) > 0) {
-        gameSpeed += 0.5;
-        obstacleInterval = Math.max(50, obstacleInterval - 5);
+        if (gameSpeed < MAX_SPEED) {
+            gameSpeed += 0.2; // 0.5에서 0.2로 감소
+        }
+        obstacleInterval = Math.max(60, obstacleInterval - 2); // 최소 간격 50->60, 감소율 5->2
     }
 
     // 장애물 생성

@@ -27,6 +27,7 @@ LIGHT_GRAY = (201, 201, 201)
 GRAVITY = 0.6
 JUMP_POWER = -13
 GROUND_Y = 130
+MAX_SPEED = 13  # 최대 속도 제한
 
 
 class Dino:
@@ -70,26 +71,51 @@ class Dino:
     def draw(self, screen):
         if self.ducking:
             # 숙인 자세
-            pygame.draw.rect(screen, GRAY, (self.x, self.y + 33, self.width, 29))
-        else:
-            # 머리
-            pygame.draw.rect(screen, GRAY, (self.x + 29, self.y, 29, 29))
+            # 머리 (숙임)
+            pygame.draw.rect(screen, GRAY, (self.x + 29, self.y + 33, 29, 18))
             # 눈
-            pygame.draw.rect(screen, WHITE, (self.x + 40, self.y + 8, 8, 8))
+            pygame.draw.rect(screen, WHITE, (self.x + 40, self.y + 38, 6, 6))
+
+            # 몸통 (숙임)
+            pygame.draw.rect(screen, GRAY, (self.x + 10, self.y + 43, 38, 18))
+            # 팔 (숙임)
+            pygame.draw.rect(screen, GRAY, (self.x, self.y + 48, 15, 8))
+            # 다리 (숙임)
+            leg_offset = 4 if (self.frame // 5) % 2 == 0 else 0
+            pygame.draw.rect(screen, GRAY, (self.x + 36, self.y + 51, 8, 10))
+            pygame.draw.rect(screen, GRAY, (self.x + 46, self.y + 51, 8, 10))
+        else:
+            # 일반 자세
+            # 머리 (둥근 형태)
+            pygame.draw.rect(screen, GRAY, (self.x + 31, self.y, 22, 22))
+            # 입
+            pygame.draw.rect(screen, GRAY, (self.x + 53, self.y + 14, 5, 4))
+            # 눈
+            pygame.draw.rect(screen, WHITE, (self.x + 40, self.y + 6, 6, 6))
+            pygame.draw.rect(screen, GRAY, (self.x + 41, self.y + 7, 4, 4))
+
+            # 목
+            pygame.draw.rect(screen, GRAY, (self.x + 29, self.y + 22, 8, 10))
 
             # 몸통
-            pygame.draw.rect(screen, GRAY, (self.x + 20, self.y + 29, 38, 33))
+            pygame.draw.rect(screen, GRAY, (self.x + 18, self.y + 30, 32, 26))
 
-            # 팔
-            pygame.draw.rect(screen, GRAY, (self.x + 20, self.y + 29, 11, 20))
+            # 앞팔
+            pygame.draw.rect(screen, GRAY, (self.x + 18, self.y + 32, 8, 14))
 
-            # 다리
-            leg_offset = 5 if (self.frame // 5) % 2 == 0 else 0
-            pygame.draw.rect(screen, GRAY, (self.x + 21, self.y + 56, 9, 13 + leg_offset))
-            pygame.draw.rect(screen, GRAY, (self.x + 40, self.y + 56, 9, 13 - leg_offset))
+            # 뒷팔
+            pygame.draw.rect(screen, GRAY, (self.x + 8, self.y + 38, 12, 8))
+
+            # 다리 애니메이션
+            leg_offset = 4 if (self.frame // 5) % 2 == 0 else 0
+            # 앞다리
+            pygame.draw.rect(screen, GRAY, (self.x + 24, self.y + 56, 6, 6 + leg_offset))
+            # 뒷다리
+            pygame.draw.rect(screen, GRAY, (self.x + 38, self.y + 56, 6, 6 - leg_offset))
 
             # 꼬리
-            pygame.draw.rect(screen, GRAY, (self.x, self.y + 33, 21, 13))
+            pygame.draw.rect(screen, GRAY, (self.x, self.y + 32, 10, 16))
+            pygame.draw.rect(screen, GRAY, (self.x + 10, self.y + 36, 8, 8))
 
     def get_hitbox(self):
         if self.ducking:
@@ -128,22 +154,53 @@ class Obstacle:
 
     def draw(self, screen):
         if self.type == 'bird':
-            # 새
-            pygame.draw.rect(screen, GRAY, (self.x + 13, self.y + 13, 27, 13))
-            # 날개
-            wing_y = self.y if (self.frame // 5) % 2 == 0 else self.y + 7
-            pygame.draw.rect(screen, GRAY, (self.x, wing_y, 16, 11))
-            pygame.draw.rect(screen, GRAY, (self.x + 37, wing_y, 16, 11))
+            # 새 - Chrome 스타일
+            wing_up = (self.frame // 5) % 2 == 0
+
+            # 몸통
+            pygame.draw.rect(screen, GRAY, (self.x + 12, self.y + 12, 18, 12))
+            # 머리
+            pygame.draw.rect(screen, GRAY, (self.x + 8, self.y + 10, 8, 8))
+            # 부리
+            pygame.draw.rect(screen, GRAY, (self.x + 6, self.y + 12, 4, 4))
+
+            # 날개 애니메이션
+            if wing_up:
+                # 날개 위로
+                pygame.draw.rect(screen, GRAY, (self.x + 12, self.y + 4, 18, 8))
+            else:
+                # 날개 아래로
+                pygame.draw.rect(screen, GRAY, (self.x + 12, self.y + 20, 18, 8))
+
+            # 꼬리
+            pygame.draw.rect(screen, GRAY, (self.x + 30, self.y + 14, 8, 8))
         elif self.type == 'cactus':
-            # 단일 선인장
-            pygame.draw.rect(screen, GRAY, (self.x + 5, self.y, 12, self.height))
-            pygame.draw.rect(screen, GRAY, (self.x, self.y + 16, 11, 20))
+            # 단일 선인장 - 가시 추가
+            # 중앙 기둥
+            pygame.draw.rect(screen, GRAY, (self.x + 6, self.y, 10, self.height))
+
+            # 왼쪽 가시
+            pygame.draw.rect(screen, GRAY, (self.x + 2, self.y + 10, 4, 6))
+            pygame.draw.rect(screen, GRAY, (self.x + 4, self.y + 8, 2, 2))
+
+            # 오른쪽 가시
+            pygame.draw.rect(screen, GRAY, (self.x + 16, self.y + 10, 4, 6))
+            pygame.draw.rect(screen, GRAY, (self.x + 16, self.y + 8, 2, 2))
+
+            # 측면 팔
+            pygame.draw.rect(screen, GRAY, (self.x, self.y + 16, 6, 14))
+            pygame.draw.rect(screen, GRAY, (self.x + 16, self.y + 20, 6, 10))
         else:  # cactus2
             # 더블 선인장
-            pygame.draw.rect(screen, GRAY, (self.x + 5, self.y, 12, self.height))
-            pygame.draw.rect(screen, GRAY, (self.x, self.y + 16, 11, 20))
-            pygame.draw.rect(screen, GRAY, (self.x + 28, self.y, 12, self.height))
-            pygame.draw.rect(screen, GRAY, (self.x + 35, self.y + 16, 11, 20))
+            # 왼쪽 선인장
+            pygame.draw.rect(screen, GRAY, (self.x + 6, self.y, 10, self.height))
+            pygame.draw.rect(screen, GRAY, (self.x + 2, self.y + 10, 4, 6))
+            pygame.draw.rect(screen, GRAY, (self.x, self.y + 16, 6, 14))
+
+            # 오른쪽 선인장
+            pygame.draw.rect(screen, GRAY, (self.x + 28, self.y + 4, 10, self.height - 4))
+            pygame.draw.rect(screen, GRAY, (self.x + 24, self.y + 14, 4, 6))
+            pygame.draw.rect(screen, GRAY, (self.x + 38, self.y + 18, 6, 10))
 
     def is_off_screen(self):
         return self.x + self.width < 0
@@ -316,10 +373,11 @@ class Game:
         # 점수 업데이트
         self.score += 0.1
 
-        # 속도 증가
+        # 속도 증가 (천천히, 최대 속도 제한)
         if int(self.score) % 100 == 0 and int(self.score) > 0:
-            self.game_speed += 0.5
-            self.obstacle_interval = max(50, self.obstacle_interval - 5)
+            if self.game_speed < MAX_SPEED:
+                self.game_speed += 0.2  # 0.5에서 0.2로 감소
+            self.obstacle_interval = max(60, self.obstacle_interval - 2)  # 최소 간격 50->60, 감소율 5->2
 
         # 장애물 생성
         self.obstacle_timer += 1
