@@ -205,6 +205,11 @@ class Game:
         self.game_started = False
         self.game_over = False
 
+        # 하트 시스템
+        self.lives = 3
+        self.invincible = False
+        self.invincible_timer = 0
+
     def load_high_score(self):
         try:
             if os.path.exists('high_score.json'):
@@ -221,6 +226,47 @@ class Game:
                 json.dump({'high_score': self.high_score}, f)
         except:
             pass
+
+    def draw_hearts(self):
+        """하트 그리기 (픽셀아트 스타일)"""
+        heart_size = 2
+        start_x = 10
+        start_y = 12
+        spacing = 30
+
+        for i in range(3):
+            x = start_x + i * spacing
+            y = start_y
+
+            # 색상 결정
+            if i < self.lives:
+                # 채워진 하트
+                color = LIGHT_GRAY if (self.invincible and self.invincible_timer % 10 < 5) else GRAY
+            else:
+                # 빈 하트 (외곽선)
+                color = LIGHT_GRAY
+
+            # 하트 모양 픽셀아트
+            # 상단 두 개의 원
+            pygame.draw.rect(self.screen, color, (x + heart_size * 1, y, heart_size * 2, heart_size))
+            pygame.draw.rect(self.screen, color, (x + heart_size * 4, y, heart_size * 2, heart_size))
+
+            # 중간 넓은 부분
+            pygame.draw.rect(self.screen, color, (x, y + heart_size, heart_size * 7, heart_size))
+            pygame.draw.rect(self.screen, color, (x, y + heart_size * 2, heart_size * 7, heart_size))
+
+            # 아래로 좁아지는 부분
+            pygame.draw.rect(self.screen, color, (x + heart_size, y + heart_size * 3, heart_size * 5, heart_size))
+            pygame.draw.rect(self.screen, color, (x + heart_size * 2, y + heart_size * 4, heart_size * 3, heart_size))
+            pygame.draw.rect(self.screen, color, (x + heart_size * 3, y + heart_size * 5, heart_size, heart_size))
+
+            # 빈 하트인 경우 내부를 흰색으로
+            if i >= self.lives:
+                pygame.draw.rect(self.screen, WHITE, (x + heart_size * 2, y + heart_size, heart_size, heart_size))
+                pygame.draw.rect(self.screen, WHITE, (x + heart_size * 4, y + heart_size, heart_size, heart_size))
+                pygame.draw.rect(self.screen, WHITE, (x + heart_size * 1, y + heart_size * 2, heart_size * 5, heart_size))
+                pygame.draw.rect(self.screen, WHITE, (x + heart_size * 2, y + heart_size * 3, heart_size * 3, heart_size))
+                pygame.draw.rect(self.screen, WHITE, (x + heart_size * 3, y + heart_size * 4, heart_size, heart_size))
 
     def spawn_obstacle(self):
         rand = random.random()
@@ -260,6 +306,13 @@ class Game:
         # 공룡 업데이트
         self.dino.update()
 
+        # 무적 타이머 업데이트
+        if self.invincible:
+            self.invincible_timer += 1
+            if self.invincible_timer > 60:  # 약 1초 무적
+                self.invincible = False
+                self.invincible_timer = 0
+
         # 점수 업데이트
         self.score += 0.1
 
@@ -278,13 +331,22 @@ class Game:
         for obstacle in self.obstacles[:]:
             obstacle.update(self.game_speed)
 
-            if obstacle.collides_with(self.dino):
-                self.game_over = True
-                final_score = int(self.score)
-                if final_score > self.high_score:
-                    self.high_score = final_score
-                    self.save_high_score()
-                return
+            # 충돌 체크 (무적 상태가 아닐 때만)
+            if not self.invincible and obstacle.collides_with(self.dino) and not obstacle.passed:
+                obstacle.passed = True  # 중복 충돌 방지
+                self.lives -= 1
+
+                if self.lives <= 0:
+                    # 게임 오버
+                    self.game_over = True
+                    final_score = int(self.score)
+                    if final_score > self.high_score:
+                        self.high_score = final_score
+                        self.save_high_score()
+                else:
+                    # 하트가 남아있으면 무적 시간 부여
+                    self.invincible = True
+                    self.invincible_timer = 0
 
             if obstacle.is_off_screen():
                 self.obstacles.remove(obstacle)
@@ -326,9 +388,13 @@ class Game:
         self.screen.blit(hi_surf, (SCREEN_WIDTH - 130, 10))
         self.screen.blit(score_surf, (SCREEN_WIDTH - 60, 10))
 
+        # 하트
+        self.draw_hearts()
+
         if self.game_started and not self.game_over:
-            # 공룡
-            self.dino.draw(self.screen)
+            # 공룡 (무적 상태면 깜빡임)
+            if not self.invincible or self.invincible_timer % 6 < 3:
+                self.dino.draw(self.screen)
 
             # 장애물
             for obstacle in self.obstacles:

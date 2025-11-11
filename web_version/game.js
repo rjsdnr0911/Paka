@@ -12,6 +12,9 @@ let score = 0;
 let highScore = localStorage.getItem('dinoHighScore') || 0;
 let gameRunning = false;
 let gameOver = false;
+let lives = 3;
+let invincible = false;
+let invincibleTimer = 0;
 
 // 공룡 객체
 const dino = {
@@ -216,6 +219,53 @@ function drawScore() {
     ctx.fillText(scoreText, canvas.width - 10, 20);
 }
 
+// 하트 그리기 (픽셀아트 스타일)
+function drawHearts() {
+    const heartSize = 2; // 픽셀 크기
+    const startX = 10;
+    const startY = 12;
+    const spacing = 30;
+
+    ctx.fillStyle = '#535353';
+
+    for (let i = 0; i < 3; i++) {
+        const x = startX + i * spacing;
+        const y = startY;
+
+        if (i < lives) {
+            // 채워진 하트
+            ctx.fillStyle = invincible && invincibleTimer % 10 < 5 ? '#c9c9c9' : '#535353';
+        } else {
+            // 빈 하트 (외곽선만)
+            ctx.fillStyle = '#c9c9c9';
+        }
+
+        // 하트 모양 픽셀아트
+        // 상단 두 개의 원
+        ctx.fillRect(x + heartSize * 1, y, heartSize * 2, heartSize);
+        ctx.fillRect(x + heartSize * 4, y, heartSize * 2, heartSize);
+
+        // 중간 넓은 부분
+        ctx.fillRect(x, y + heartSize, heartSize * 7, heartSize);
+        ctx.fillRect(x, y + heartSize * 2, heartSize * 7, heartSize);
+
+        // 아래로 좁아지는 부분
+        ctx.fillRect(x + heartSize, y + heartSize * 3, heartSize * 5, heartSize);
+        ctx.fillRect(x + heartSize * 2, y + heartSize * 4, heartSize * 3, heartSize);
+        ctx.fillRect(x + heartSize * 3, y + heartSize * 5, heartSize, heartSize);
+
+        // 빈 하트인 경우 내부를 흰색으로
+        if (i >= lives) {
+            ctx.fillStyle = '#fff';
+            ctx.fillRect(x + heartSize * 2, y + heartSize, heartSize, heartSize);
+            ctx.fillRect(x + heartSize * 4, y + heartSize, heartSize, heartSize);
+            ctx.fillRect(x + heartSize * 1, y + heartSize * 2, heartSize * 5, heartSize);
+            ctx.fillRect(x + heartSize * 2, y + heartSize * 3, heartSize * 3, heartSize);
+            ctx.fillRect(x + heartSize * 3, y + heartSize * 4, heartSize, heartSize);
+        }
+    }
+}
+
 // 바닥 그리기
 function drawGround() {
     ctx.strokeStyle = '#535353';
@@ -279,6 +329,15 @@ function update() {
     // 공룡 업데이트
     dino.update();
 
+    // 무적 타이머 업데이트
+    if (invincible) {
+        invincibleTimer++;
+        if (invincibleTimer > 60) { // 약 1초 무적
+            invincible = false;
+            invincibleTimer = 0;
+        }
+    }
+
     // 점수 증가
     score += 0.1;
 
@@ -299,13 +358,23 @@ function update() {
     for (let i = obstacles.length - 1; i >= 0; i--) {
         obstacles[i].update();
 
-        // 충돌 체크
-        if (obstacles[i].collidesWith(dino)) {
-            gameOver = true;
-            const finalScore = Math.floor(score);
-            if (finalScore > highScore) {
-                highScore = finalScore;
-                localStorage.setItem('dinoHighScore', highScore);
+        // 충돌 체크 (무적 상태가 아닐 때만)
+        if (!invincible && obstacles[i].collidesWith(dino) && !obstacles[i].passed) {
+            obstacles[i].passed = true; // 중복 충돌 방지
+            lives--;
+
+            if (lives <= 0) {
+                // 게임 오버
+                gameOver = true;
+                const finalScore = Math.floor(score);
+                if (finalScore > highScore) {
+                    highScore = finalScore;
+                    localStorage.setItem('dinoHighScore', highScore);
+                }
+            } else {
+                // 하트가 남아있으면 무적 시간 부여
+                invincible = true;
+                invincibleTimer = 0;
             }
         }
 
@@ -345,9 +414,14 @@ function draw() {
     // 점수
     drawScore();
 
+    // 하트
+    drawHearts();
+
     if (gameRunning && !gameOver) {
-        // 공룡
-        dino.draw();
+        // 공룡 (무적 상태면 깜빡임)
+        if (!invincible || invincibleTimer % 6 < 3) {
+            dino.draw();
+        }
 
         // 장애물
         obstacles.forEach(obstacle => obstacle.draw());
@@ -377,6 +451,9 @@ function resetGame() {
     obstacleInterval = 75;
     gameOver = false;
     gameRunning = true;
+    lives = 3;
+    invincible = false;
+    invincibleTimer = 0;
 }
 
 // 게임 루프
