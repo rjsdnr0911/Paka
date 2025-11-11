@@ -2,8 +2,52 @@
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
-canvas.width = 800;
-canvas.height = 200;
+// 원본 캔버스 크기
+const CANVAS_WIDTH = 800;
+const CANVAS_HEIGHT = 200;
+
+canvas.width = CANVAS_WIDTH;
+canvas.height = CANVAS_HEIGHT;
+
+// 모바일 대응 스케일링 변수
+let scale = 1;
+let offsetX = 0;
+let offsetY = 0;
+
+// 캔버스 크기 조정 함수
+function resizeCanvas() {
+    const container = canvas.parentElement;
+    const containerWidth = container.offsetWidth;
+    const containerHeight = window.innerHeight;
+
+    // 가로 기준 스케일 계산
+    const scaleX = containerWidth / CANVAS_WIDTH;
+    // 세로 기준 스케일 계산 (여유 공간 고려)
+    const scaleY = (containerHeight * 0.8) / CANVAS_HEIGHT;
+
+    // 더 작은 스케일 사용 (비율 유지)
+    scale = Math.min(scaleX, scaleY, 1);
+
+    // 캔버스 표시 크기 설정
+    canvas.style.width = (CANVAS_WIDTH * scale) + 'px';
+    canvas.style.height = (CANVAS_HEIGHT * scale) + 'px';
+}
+
+// 터치 좌표를 캔버스 좌표로 변환
+function getTouchPos(touch) {
+    const rect = canvas.getBoundingClientRect();
+    return {
+        x: (touch.clientX - rect.left) / scale,
+        y: (touch.clientY - rect.top) / scale
+    };
+}
+
+// 초기 크기 조정 및 리사이즈 이벤트
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
+window.addEventListener('orientationchange', () => {
+    setTimeout(resizeCanvas, 100);
+});
 
 // 게임 변수
 let gameSpeed = 6;
@@ -550,14 +594,59 @@ document.addEventListener('keyup', (e) => {
 });
 
 // 터치 이벤트 (모바일)
+let touchStartY = 0;
+
 canvas.addEventListener('touchstart', (e) => {
     e.preventDefault();
+
+    const touch = e.touches[0];
+    const pos = getTouchPos(touch);
+    touchStartY = pos.y;
+
     if (!gameRunning || gameOver) {
         resetGame();
     } else {
-        dino.jump();
+        // 화면 중앙(100px) 기준으로 위/아래 구분
+        if (pos.y < CANVAS_HEIGHT / 2) {
+            // 화면 위쪽 터치 = 점프
+            dino.jump();
+        } else {
+            // 화면 아래쪽 터치 = 숙이기
+            dino.duck(true);
+        }
     }
 });
+
+canvas.addEventListener('touchend', (e) => {
+    e.preventDefault();
+    // 터치를 떼면 숙이기 해제
+    if (gameRunning && !gameOver) {
+        dino.duck(false);
+    }
+});
+
+canvas.addEventListener('touchcancel', (e) => {
+    e.preventDefault();
+    // 터치 취소 시에도 숙이기 해제
+    if (gameRunning && !gameOver) {
+        dino.duck(false);
+    }
+});
+
+// 모바일 스크롤 방지
+document.body.addEventListener('touchmove', (e) => {
+    e.preventDefault();
+}, { passive: false });
+
+// 더블 탭 줌 방지
+let lastTouchEnd = 0;
+document.addEventListener('touchend', (e) => {
+    const now = Date.now();
+    if (now - lastTouchEnd <= 300) {
+        e.preventDefault();
+    }
+    lastTouchEnd = now;
+}, false);
 
 // 게임 시작
 dino.y = 130 - dino.height;

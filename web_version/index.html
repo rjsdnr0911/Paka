@@ -2,13 +2,24 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
     <title>공룡 게임</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            position: fixed;
+            touch-action: none;
         }
 
         body {
@@ -17,20 +28,73 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
-            overflow: hidden;
+        }
+
+        #gameContainer {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
         }
 
         #gameCanvas {
             display: block;
+            width: 100%;
+            height: auto;
+            max-width: 800px;
             image-rendering: pixelated;
             image-rendering: crisp-edges;
             border: 1px solid #535353;
+            touch-action: none;
+        }
+
+        #mobileControls {
+            display: none;
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            gap: 20px;
+            z-index: 1000;
+        }
+
+        .control-hint {
+            background: rgba(83, 83, 83, 0.8);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        @media (max-width: 800px) {
+            #mobileControls {
+                display: flex;
+            }
+
+            #gameCanvas {
+                border: none;
+            }
+        }
+
+        @media (orientation: portrait) {
+            body {
+                align-items: flex-start;
+                padding-top: 20px;
+            }
         }
     </style>
 </head>
 <body>
-    <canvas id="gameCanvas"></canvas>
+    <div id="gameContainer">
+        <canvas id="gameCanvas"></canvas>
+        <div id="mobileControls">
+            <div class="control-hint">위쪽 탭: 점프 | 아래쪽 탭: 숙이기</div>
+        </div>
+    </div>
     <script src="game.js"></script>
 </body>
 </html>
