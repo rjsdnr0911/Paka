@@ -2,8 +2,8 @@
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
-canvas.width = 600;
-canvas.height = 150;
+canvas.width = 800;
+canvas.height = 200;
 
 // 게임 변수
 let gameSpeed = 6;
@@ -18,12 +18,12 @@ let invincibleTimer = 0;
 
 // 공룡 객체
 const dino = {
-    x: 25,
+    x: 50,
     y: 0,
-    width: 44,
-    height: 47,
+    width: 58,
+    height: 62,
     dy: 0,
-    jumpPower: -10,
+    jumpPower: -13,
     grounded: false,
     ducking: false,
 
@@ -32,29 +32,29 @@ const dino = {
 
         if (this.ducking) {
             // 숙인 자세 - 심플한 직사각형
-            ctx.fillRect(this.x, this.y + 25, this.width, 22);
+            ctx.fillRect(this.x, this.y + 33, this.width, 29);
         } else {
             // 일반 자세
             // 머리
-            ctx.fillRect(this.x + 22, this.y, 22, 22);
+            ctx.fillRect(this.x + 29, this.y, 29, 29);
             // 눈
             ctx.fillStyle = '#fff';
-            ctx.fillRect(this.x + 30, this.y + 6, 6, 6);
+            ctx.fillRect(this.x + 40, this.y + 8, 8, 8);
 
             // 몸통
             ctx.fillStyle = '#535353';
-            ctx.fillRect(this.x + 15, this.y + 22, 29, 25);
+            ctx.fillRect(this.x + 20, this.y + 29, 38, 33);
 
             // 팔
-            ctx.fillRect(this.x + 15, this.y + 22, 8, 15);
+            ctx.fillRect(this.x + 20, this.y + 29, 11, 20);
 
             // 다리
-            const legOffset = (Math.floor(score / 5) % 2) * 4;
-            ctx.fillRect(this.x + 16, this.y + 42, 7, 10 + legOffset);
-            ctx.fillRect(this.x + 30, this.y + 42, 7, 10 - legOffset);
+            const legOffset = (Math.floor(score / 5) % 2) * 5;
+            ctx.fillRect(this.x + 21, this.y + 56, 9, 13 + legOffset);
+            ctx.fillRect(this.x + 40, this.y + 56, 9, 13 - legOffset);
 
             // 꼬리
-            ctx.fillRect(this.x, this.y + 25, 16, 10);
+            ctx.fillRect(this.x, this.y + 33, 21, 13);
         }
     },
 
@@ -62,7 +62,7 @@ const dino = {
         this.dy += gravity;
         this.y += this.dy;
 
-        const groundY = 97 - (this.ducking ? 22 : this.height);
+        const groundY = 130 - (this.ducking ? 29 : this.height);
         if (this.y >= groundY) {
             this.y = groundY;
             this.dy = 0;
@@ -87,9 +87,9 @@ const dino = {
 
     getHitbox() {
         if (this.ducking) {
-            return { x: this.x + 4, y: this.y + 25, width: this.width - 8, height: 22 };
+            return { x: this.x + 5, y: this.y + 33, width: this.width - 10, height: 29 };
         }
-        return { x: this.x + 4, y: this.y + 4, width: this.width - 8, height: this.height - 8 };
+        return { x: this.x + 5, y: this.y + 5, width: this.width - 10, height: this.height - 10 };
     }
 };
 
@@ -101,22 +101,22 @@ class Obstacle {
 
         if (type === 'bird') {
             this.type = 'bird';
-            this.width = 40;
-            this.height = 30;
-            this.y = 60;
+            this.width = 53;
+            this.height = 40;
+            this.y = 80;
             this.frame = 0;
         } else {
             this.type = type || (Math.random() > 0.5 ? 'cactus' : 'cactus2');
 
             if (this.type === 'cactus') {
-                this.width = 17;
-                this.height = 35;
+                this.width = 23;
+                this.height = 47;
             } else if (this.type === 'cactus2') {
-                this.width = 34;
-                this.height = 35;
+                this.width = 45;
+                this.height = 47;
             }
 
-            this.y = 97 - this.height;
+            this.y = 130 - this.height;
         }
     }
 
@@ -126,22 +126,22 @@ class Obstacle {
         if (this.type === 'bird') {
             // 새 - 매우 심플
             // 몸
-            ctx.fillRect(this.x + 10, this.y + 10, 20, 10);
+            ctx.fillRect(this.x + 13, this.y + 13, 27, 13);
             // 날개 (애니메이션)
-            const wingY = (Math.floor(this.frame) % 10 < 5) ? this.y : this.y + 5;
-            ctx.fillRect(this.x, wingY, 12, 8);
-            ctx.fillRect(this.x + 28, wingY, 12, 8);
+            const wingY = (Math.floor(this.frame) % 10 < 5) ? this.y : this.y + 7;
+            ctx.fillRect(this.x, wingY, 16, 11);
+            ctx.fillRect(this.x + 37, wingY, 16, 11);
             this.frame += 0.2;
         } else if (this.type === 'cactus') {
             // 단일 선인장
-            ctx.fillRect(this.x + 4, this.y, 9, this.height);
-            ctx.fillRect(this.x, this.y + 12, 8, 15);
+            ctx.fillRect(this.x + 5, this.y, 12, this.height);
+            ctx.fillRect(this.x, this.y + 16, 11, 20);
         } else if (this.type === 'cactus2') {
             // 더블 선인장
-            ctx.fillRect(this.x + 4, this.y, 9, this.height);
-            ctx.fillRect(this.x, this.y + 12, 8, 15);
-            ctx.fillRect(this.x + 21, this.y, 9, this.height);
-            ctx.fillRect(this.x + 26, this.y + 12, 8, 15);
+            ctx.fillRect(this.x + 5, this.y, 12, this.height);
+            ctx.fillRect(this.x, this.y + 16, 11, 20);
+            ctx.fillRect(this.x + 28, this.y, 12, this.height);
+            ctx.fillRect(this.x + 35, this.y + 16, 11, 20);
         }
     }
 
@@ -169,16 +169,16 @@ class Obstacle {
 // 구름 클래스
 class Cloud {
     constructor() {
-        this.x = canvas.width + Math.random() * 100;
-        this.y = Math.random() * 50 + 10;
-        this.width = 46;
-        this.height = 14;
+        this.x = canvas.width + Math.random() * 133;
+        this.y = Math.random() * 67 + 13;
+        this.width = 61;
+        this.height = 19;
     }
 
     draw() {
         ctx.fillStyle = '#c9c9c9';
         ctx.fillRect(this.x, this.y, this.width, this.height);
-        ctx.fillRect(this.x + 10, this.y - 5, 26, 5);
+        ctx.fillRect(this.x + 13, this.y - 7, 35, 7);
     }
 
     update() {
@@ -210,21 +210,21 @@ function drawScore() {
     const hiText = 'HI ' + highScore.toString().padStart(5, '0');
 
     ctx.fillStyle = '#535353';
-    ctx.font = '12px "Courier New", monospace';
+    ctx.font = '16px "Courier New", monospace';
     ctx.textAlign = 'right';
 
     // 최고 점수
-    ctx.fillText(hiText, canvas.width - 80, 20);
+    ctx.fillText(hiText, canvas.width - 107, 27);
     // 현재 점수
-    ctx.fillText(scoreText, canvas.width - 10, 20);
+    ctx.fillText(scoreText, canvas.width - 13, 27);
 }
 
 // 하트 그리기 (픽셀아트 스타일)
 function drawHearts() {
-    const heartSize = 2; // 픽셀 크기
-    const startX = 10;
-    const startY = 12;
-    const spacing = 30;
+    const heartSize = 3; // 픽셀 크기
+    const startX = 13;
+    const startY = 16;
+    const spacing = 40;
 
     ctx.fillStyle = '#535353';
 
@@ -269,41 +269,41 @@ function drawHearts() {
 // 바닥 그리기
 function drawGround() {
     ctx.strokeStyle = '#535353';
-    ctx.lineWidth = 2;
+    ctx.lineWidth = 3;
     ctx.beginPath();
-    ctx.moveTo(0, 97);
-    ctx.lineTo(canvas.width, 97);
+    ctx.moveTo(0, 130);
+    ctx.lineTo(canvas.width, 130);
     ctx.stroke();
 
     // 바닥 패턴
-    const offset = Math.floor(score * 2) % 20;
+    const offset = Math.floor(score * 2) % 27;
     ctx.fillStyle = '#535353';
-    for (let i = -offset; i < canvas.width; i += 20) {
-        ctx.fillRect(i, 99, 10, 2);
+    for (let i = -offset; i < canvas.width; i += 27) {
+        ctx.fillRect(i, 133, 13, 3);
     }
 }
 
 // 게임 오버 텍스트
 function drawGameOver() {
     ctx.fillStyle = '#535353';
-    ctx.font = 'bold 14px "Courier New", monospace';
+    ctx.font = 'bold 19px "Courier New", monospace';
     ctx.textAlign = 'center';
-    ctx.fillText('G A M E  O V E R', canvas.width / 2, 40);
+    ctx.fillText('G A M E  O V E R', canvas.width / 2, 53);
 
-    ctx.font = '10px "Courier New", monospace';
-    ctx.fillText('Press SPACE to restart', canvas.width / 2, 55);
+    ctx.font = '13px "Courier New", monospace';
+    ctx.fillText('Press SPACE to restart', canvas.width / 2, 73);
 
     // 재시작 아이콘 (↻)
-    ctx.font = '20px Arial';
-    ctx.fillText('↻', canvas.width / 2, 75);
+    ctx.font = '27px Arial';
+    ctx.fillText('↻', canvas.width / 2, 100);
 }
 
 // 시작 화면
 function drawStartScreen() {
     ctx.fillStyle = '#535353';
-    ctx.font = '10px "Courier New", monospace';
+    ctx.font = '13px "Courier New", monospace';
     ctx.textAlign = 'center';
-    ctx.fillText('Press SPACE to start', canvas.width / 2, 60);
+    ctx.fillText('Press SPACE to start', canvas.width / 2, 80);
 }
 
 // 장애물 생성
@@ -499,5 +499,5 @@ canvas.addEventListener('touchstart', (e) => {
 });
 
 // 게임 시작
-dino.y = 97 - dino.height;
+dino.y = 130 - dino.height;
 gameLoop();

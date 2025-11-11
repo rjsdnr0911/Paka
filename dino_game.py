@@ -14,8 +14,8 @@ import os
 pygame.init()
 
 # 화면 설정
-SCREEN_WIDTH = 600
-SCREEN_HEIGHT = 150
+SCREEN_WIDTH = 800
+SCREEN_HEIGHT = 200
 FPS = 60
 
 # 색상
@@ -25,17 +25,17 @@ LIGHT_GRAY = (201, 201, 201)
 
 # 게임 설정
 GRAVITY = 0.6
-JUMP_POWER = -10
-GROUND_Y = 97
+JUMP_POWER = -13
+GROUND_Y = 130
 
 
 class Dino:
     """공룡 캐릭터"""
     def __init__(self):
-        self.x = 25
-        self.y = GROUND_Y - 47
-        self.width = 44
-        self.height = 47
+        self.x = 50
+        self.y = GROUND_Y - 62
+        self.width = 58
+        self.height = 62
         self.vy = 0
         self.grounded = True
         self.ducking = False
@@ -46,7 +46,7 @@ class Dino:
         self.vy += GRAVITY
         self.y += self.vy
 
-        ground_y = GROUND_Y - (22 if self.ducking else self.height)
+        ground_y = GROUND_Y - (29 if self.ducking else self.height)
         if self.y >= ground_y:
             self.y = ground_y
             self.vy = 0
@@ -70,31 +70,31 @@ class Dino:
     def draw(self, screen):
         if self.ducking:
             # 숙인 자세
-            pygame.draw.rect(screen, GRAY, (self.x, self.y + 25, self.width, 22))
+            pygame.draw.rect(screen, GRAY, (self.x, self.y + 33, self.width, 29))
         else:
             # 머리
-            pygame.draw.rect(screen, GRAY, (self.x + 22, self.y, 22, 22))
+            pygame.draw.rect(screen, GRAY, (self.x + 29, self.y, 29, 29))
             # 눈
-            pygame.draw.rect(screen, WHITE, (self.x + 30, self.y + 6, 6, 6))
+            pygame.draw.rect(screen, WHITE, (self.x + 40, self.y + 8, 8, 8))
 
             # 몸통
-            pygame.draw.rect(screen, GRAY, (self.x + 15, self.y + 22, 29, 25))
+            pygame.draw.rect(screen, GRAY, (self.x + 20, self.y + 29, 38, 33))
 
             # 팔
-            pygame.draw.rect(screen, GRAY, (self.x + 15, self.y + 22, 8, 15))
+            pygame.draw.rect(screen, GRAY, (self.x + 20, self.y + 29, 11, 20))
 
             # 다리
-            leg_offset = 4 if (self.frame // 5) % 2 == 0 else 0
-            pygame.draw.rect(screen, GRAY, (self.x + 16, self.y + 42, 7, 10 + leg_offset))
-            pygame.draw.rect(screen, GRAY, (self.x + 30, self.y + 42, 7, 10 - leg_offset))
+            leg_offset = 5 if (self.frame // 5) % 2 == 0 else 0
+            pygame.draw.rect(screen, GRAY, (self.x + 21, self.y + 56, 9, 13 + leg_offset))
+            pygame.draw.rect(screen, GRAY, (self.x + 40, self.y + 56, 9, 13 - leg_offset))
 
             # 꼬리
-            pygame.draw.rect(screen, GRAY, (self.x, self.y + 25, 16, 10))
+            pygame.draw.rect(screen, GRAY, (self.x, self.y + 33, 21, 13))
 
     def get_hitbox(self):
         if self.ducking:
-            return pygame.Rect(self.x + 4, self.y + 25, self.width - 8, 22)
-        return pygame.Rect(self.x + 4, self.y + 4, self.width - 8, self.height - 8)
+            return pygame.Rect(self.x + 5, self.y + 33, self.width - 10, 29)
+        return pygame.Rect(self.x + 5, self.y + 5, self.width - 10, self.height - 10)
 
 
 class Obstacle:
@@ -105,19 +105,19 @@ class Obstacle:
 
         if obstacle_type == 'bird':
             self.type = 'bird'
-            self.width = 40
-            self.height = 30
-            self.y = 60
+            self.width = 53
+            self.height = 40
+            self.y = 80
             self.frame = 0
         else:
             self.type = obstacle_type if obstacle_type in ['cactus', 'cactus2'] else random.choice(['cactus', 'cactus2'])
 
             if self.type == 'cactus':
-                self.width = 17
-                self.height = 35
+                self.width = 23
+                self.height = 47
             else:  # cactus2
-                self.width = 34
-                self.height = 35
+                self.width = 45
+                self.height = 47
 
             self.y = GROUND_Y - self.height
 
@@ -129,21 +129,21 @@ class Obstacle:
     def draw(self, screen):
         if self.type == 'bird':
             # 새
-            pygame.draw.rect(screen, GRAY, (self.x + 10, self.y + 10, 20, 10))
+            pygame.draw.rect(screen, GRAY, (self.x + 13, self.y + 13, 27, 13))
             # 날개
-            wing_y = self.y if (self.frame // 5) % 2 == 0 else self.y + 5
-            pygame.draw.rect(screen, GRAY, (self.x, wing_y, 12, 8))
-            pygame.draw.rect(screen, GRAY, (self.x + 28, wing_y, 12, 8))
+            wing_y = self.y if (self.frame // 5) % 2 == 0 else self.y + 7
+            pygame.draw.rect(screen, GRAY, (self.x, wing_y, 16, 11))
+            pygame.draw.rect(screen, GRAY, (self.x + 37, wing_y, 16, 11))
         elif self.type == 'cactus':
             # 단일 선인장
-            pygame.draw.rect(screen, GRAY, (self.x + 4, self.y, 9, self.height))
-            pygame.draw.rect(screen, GRAY, (self.x, self.y + 12, 8, 15))
+            pygame.draw.rect(screen, GRAY, (self.x + 5, self.y, 12, self.height))
+            pygame.draw.rect(screen, GRAY, (self.x, self.y + 16, 11, 20))
         else:  # cactus2
             # 더블 선인장
-            pygame.draw.rect(screen, GRAY, (self.x + 4, self.y, 9, self.height))
-            pygame.draw.rect(screen, GRAY, (self.x, self.y + 12, 8, 15))
-            pygame.draw.rect(screen, GRAY, (self.x + 21, self.y, 9, self.height))
-            pygame.draw.rect(screen, GRAY, (self.x + 26, self.y + 12, 8, 15))
+            pygame.draw.rect(screen, GRAY, (self.x + 5, self.y, 12, self.height))
+            pygame.draw.rect(screen, GRAY, (self.x, self.y + 16, 11, 20))
+            pygame.draw.rect(screen, GRAY, (self.x + 28, self.y, 12, self.height))
+            pygame.draw.rect(screen, GRAY, (self.x + 35, self.y + 16, 11, 20))
 
     def is_off_screen(self):
         return self.x + self.width < 0
@@ -157,17 +157,17 @@ class Obstacle:
 class Cloud:
     """구름"""
     def __init__(self):
-        self.x = SCREEN_WIDTH + random.randint(0, 100)
-        self.y = random.randint(10, 60)
-        self.width = 46
-        self.height = 14
+        self.x = SCREEN_WIDTH + random.randint(0, 133)
+        self.y = random.randint(13, 80)
+        self.width = 61
+        self.height = 19
 
     def update(self, game_speed):
         self.x -= game_speed * 0.2
 
     def draw(self, screen):
         pygame.draw.rect(screen, LIGHT_GRAY, (self.x, self.y, self.width, self.height))
-        pygame.draw.rect(screen, LIGHT_GRAY, (self.x + 10, self.y - 5, 26, 5))
+        pygame.draw.rect(screen, LIGHT_GRAY, (self.x + 13, self.y - 7, 35, 7))
 
     def is_off_screen(self):
         return self.x + self.width < 0
@@ -179,7 +179,7 @@ class Game:
         self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
         pygame.display.set_caption("공룡 게임")
         self.clock = pygame.time.Clock()
-        self.font = pygame.font.SysFont('courier', 12, bold=False)
+        self.font = pygame.font.SysFont('courier', 16, bold=False)
 
         self.reset_game()
         self.high_score = self.load_high_score()
@@ -229,10 +229,10 @@ class Game:
 
     def draw_hearts(self):
         """하트 그리기 (픽셀아트 스타일)"""
-        heart_size = 2
-        start_x = 10
-        start_y = 12
-        spacing = 30
+        heart_size = 3
+        start_x = 13
+        start_y = 16
+        spacing = 40
 
         for i in range(3):
             x = start_x + i * spacing
@@ -371,12 +371,12 @@ class Game:
             cloud.draw(self.screen)
 
         # 바닥
-        pygame.draw.line(self.screen, GRAY, (0, GROUND_Y), (SCREEN_WIDTH, GROUND_Y), 2)
+        pygame.draw.line(self.screen, GRAY, (0, GROUND_Y), (SCREEN_WIDTH, GROUND_Y), 3)
 
         # 바닥 패턴
-        offset = int(self.score * 2) % 20
-        for i in range(-offset, SCREEN_WIDTH, 20):
-            pygame.draw.rect(self.screen, GRAY, (i, GROUND_Y + 2, 10, 2))
+        offset = int(self.score * 2) % 27
+        for i in range(-offset, SCREEN_WIDTH, 27):
+            pygame.draw.rect(self.screen, GRAY, (i, GROUND_Y + 3, 13, 3))
 
         # 점수
         score_text = str(int(self.score)).zfill(5)
@@ -385,8 +385,8 @@ class Game:
         score_surf = self.font.render(score_text, True, GRAY)
         hi_surf = self.font.render(hi_text, True, GRAY)
 
-        self.screen.blit(hi_surf, (SCREEN_WIDTH - 130, 10))
-        self.screen.blit(score_surf, (SCREEN_WIDTH - 60, 10))
+        self.screen.blit(hi_surf, (SCREEN_WIDTH - 173, 13))
+        self.screen.blit(score_surf, (SCREEN_WIDTH - 80, 13))
 
         # 하트
         self.draw_hearts()
@@ -407,27 +407,29 @@ class Game:
                 obstacle.draw(self.screen)
 
             # 게임 오버 텍스트
-            game_over_font = pygame.font.SysFont('courier', 14, bold=True)
+            game_over_font = pygame.font.SysFont('courier', 19, bold=True)
             game_over_surf = game_over_font.render('G A M E  O V E R', True, GRAY)
-            game_over_rect = game_over_surf.get_rect(center=(SCREEN_WIDTH // 2, 30))
+            game_over_rect = game_over_surf.get_rect(center=(SCREEN_WIDTH // 2, 40))
             self.screen.blit(game_over_surf, game_over_rect)
 
-            restart_surf = self.font.render('Press SPACE to restart', True, GRAY)
-            restart_rect = restart_surf.get_rect(center=(SCREEN_WIDTH // 2, 50))
+            restart_font = pygame.font.SysFont('courier', 13, bold=False)
+            restart_surf = restart_font.render('Press SPACE to restart', True, GRAY)
+            restart_rect = restart_surf.get_rect(center=(SCREEN_WIDTH // 2, 67))
             self.screen.blit(restart_surf, restart_rect)
 
             # 재시작 아이콘
-            icon_font = pygame.font.SysFont('arial', 20)
+            icon_font = pygame.font.SysFont('arial', 27)
             icon_surf = icon_font.render('↻', True, GRAY)
-            icon_rect = icon_surf.get_rect(center=(SCREEN_WIDTH // 2, 70))
+            icon_rect = icon_surf.get_rect(center=(SCREEN_WIDTH // 2, 93))
             self.screen.blit(icon_surf, icon_rect)
 
         else:
             # 시작 화면
             self.dino.draw(self.screen)
 
-            start_surf = self.font.render('Press SPACE to start', True, GRAY)
-            start_rect = start_surf.get_rect(center=(SCREEN_WIDTH // 2, 60))
+            start_font = pygame.font.SysFont('courier', 13, bold=False)
+            start_surf = start_font.render('Press SPACE to start', True, GRAY)
+            start_rect = start_surf.get_rect(center=(SCREEN_WIDTH // 2, 80))
             self.screen.blit(start_surf, start_rect)
 
         pygame.display.flip()
