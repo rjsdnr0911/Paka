@@ -11,29 +11,50 @@ canvas.height = CANVAS_HEIGHT;
 
 // 스프라이트 이미지 로드
 const spriteImage = new Image();
+let spriteLoaded = false;
+spriteImage.onload = () => {
+    spriteLoaded = true;
+    console.log('Sprite image loaded successfully!');
+};
 spriteImage.src = 'sprite.png';
 
 // 스프라이트 좌표 (Chrome 공룡 게임 표준)
 const SPRITES = {
     DINO: {
-        STAND_1: { x: 848, y: 0, w: 44, h: 47 },
-        STAND_2: { x: 892, y: 0, w: 44, h: 47 },
-        DUCK_1: { x: 1112, y: 19, w: 59, h: 30 },
-        DUCK_2: { x: 1171, y: 19, w: 59, h: 30 },
-        DEAD: { x: 1068, y: 0, w: 44, h: 47 }
+        STAND_1: { x: 936, y: 2, w: 44, h: 47 },    // 달리기 프레임 1
+        STAND_2: { x: 980, y: 2, w: 44, h: 47 },    // 달리기 프레임 2
+        DUCK_1: { x: 1112, y: 19, w: 59, h: 30 },   // 숙이기 프레임 1
+        DUCK_2: { x: 1171, y: 19, w: 59, h: 30 },   // 숙이기 프레임 2
+        DEAD: { x: 1024, y: 2, w: 44, h: 47 }       // 죽은 모습
     },
     BIRD: {
-        FLY_1: { x: 134, y: 0, w: 46, h: 40 },
-        FLY_2: { x: 180, y: 0, w: 46, h: 40 }
+        FLY_1: { x: 134, y: 2, w: 46, h: 40 },      // 새 프레임 1
+        FLY_2: { x: 180, y: 2, w: 46, h: 40 }       // 새 프레임 2
     },
     CACTUS: {
-        SMALL: { x: 228, y: 0, w: 17, h: 35 },
-        BIG: { x: 332, y: 0, w: 25, h: 50 },
-        MULTI_1: { x: 245, y: 0, w: 34, h: 50 },
-        MULTI_2: { x: 279, y: 0, w: 51, h: 50 }
+        SMALL: { x: 228, y: 2, w: 17, h: 35 },      // 작은 선인장
+        LARGE: { x: 245, y: 2, w: 25, h: 50 },      // 큰 선인장
+        DOUBLE: { x: 270, y: 2, w: 34, h: 50 },     // 더블 선인장
+        TRIPLE: { x: 304, y: 2, w: 51, h: 50 }      // 트리플 선인장
     },
-    CLOUD: { x: 86, y: 0, w: 46, h: 13 },
-    GROUND: { x: 2, y: 54, w: 1200, h: 12 }
+    CLOUD: { x: 86, y: 2, w: 46, h: 14 },           // 구름
+    RESTART: { x: 2, y: 2, w: 36, h: 32 },          // 재시작 버튼
+    TEXT: {
+        GAME_OVER: { x: 655, y: 14, w: 191, h: 11 } // "GAME OVER" 텍스트
+    },
+    NUMBERS: [
+        { x: 655, y: 2, w: 10, h: 13 },   // 0
+        { x: 665, y: 2, w: 10, h: 13 },   // 1
+        { x: 675, y: 2, w: 10, h: 13 },   // 2
+        { x: 685, y: 2, w: 10, h: 13 },   // 3
+        { x: 695, y: 2, w: 10, h: 13 },   // 4
+        { x: 705, y: 2, w: 10, h: 13 },   // 5
+        { x: 715, y: 2, w: 10, h: 13 },   // 6
+        { x: 725, y: 2, w: 10, h: 13 },   // 7
+        { x: 735, y: 2, w: 10, h: 13 },   // 8
+        { x: 745, y: 2, w: 10, h: 13 }    // 9
+    ],
+    HI: { x: 755, y: 2, w: 20, h: 13 }    // "HI" 텍스트
 };
 
 // 모바일 대응 스케일링 변수
@@ -101,6 +122,8 @@ const dino = {
     frameIndex: 0,
 
     draw() {
+        if (!spriteLoaded) return; // 스프라이트 로드 전에는 그리지 않음
+
         if (gameOver) {
             // 죽은 상태
             const sprite = SPRITES.DINO.DEAD;
@@ -169,7 +192,7 @@ class Obstacle {
             this.y = 80;
         } else {
             // 선인장 타입 랜덤 선택
-            const cactusTypes = ['SMALL', 'BIG', 'MULTI_1', 'MULTI_2'];
+            const cactusTypes = ['SMALL', 'LARGE', 'DOUBLE', 'TRIPLE'];
             const randomType = type || cactusTypes[Math.floor(Math.random() * cactusTypes.length)];
             this.type = randomType;
             this.sprite = SPRITES.CACTUS[randomType];
@@ -180,6 +203,8 @@ class Obstacle {
     }
 
     draw() {
+        if (!spriteLoaded) return; // 스프라이트 로드 전에는 그리지 않음
+
         if (this.type === 'bird') {
             // 새 날개 애니메이션
             const sprite = (Math.floor(this.frame) % 10 < 5) ? SPRITES.BIRD.FLY_1 : SPRITES.BIRD.FLY_2;
@@ -225,6 +250,8 @@ class Cloud {
     }
 
     draw() {
+        if (!spriteLoaded) return; // 스프라이트 로드 전에는 그리지 않음
+
         ctx.drawImage(spriteImage, this.sprite.x, this.sprite.y, this.sprite.w, this.sprite.h,
             this.x, this.y, this.sprite.w, this.sprite.h);
     }
@@ -333,17 +360,31 @@ function drawGround() {
 
 // 게임 오버 텍스트
 function drawGameOver() {
-    ctx.fillStyle = '#535353';
-    ctx.font = 'bold 19px "Courier New", monospace';
-    ctx.textAlign = 'center';
-    ctx.fillText('G A M E  O V E R', canvas.width / 2, 53);
+    if (spriteLoaded) {
+        // "GAME OVER" 스프라이트 이미지 사용
+        const gameOverSprite = SPRITES.TEXT.GAME_OVER;
+        const x = (canvas.width - gameOverSprite.w) / 2;
+        ctx.drawImage(spriteImage, gameOverSprite.x, gameOverSprite.y, gameOverSprite.w, gameOverSprite.h,
+            x, 50, gameOverSprite.w, gameOverSprite.h);
 
-    ctx.font = '13px "Courier New", monospace';
-    ctx.fillText('Press SPACE to restart', canvas.width / 2, 73);
+        // 재시작 아이콘 스프라이트
+        const restartSprite = SPRITES.RESTART;
+        const restartX = (canvas.width - restartSprite.w) / 2;
+        ctx.drawImage(spriteImage, restartSprite.x, restartSprite.y, restartSprite.w, restartSprite.h,
+            restartX, 80, restartSprite.w, restartSprite.h);
+    } else {
+        // 폴백: 텍스트로 표시
+        ctx.fillStyle = '#535353';
+        ctx.font = 'bold 19px "Courier New", monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('G A M E  O V E R', canvas.width / 2, 53);
 
-    // 재시작 아이콘 (↻)
-    ctx.font = '27px Arial';
-    ctx.fillText('↻', canvas.width / 2, 100);
+        ctx.font = '13px "Courier New", monospace';
+        ctx.fillText('Press SPACE to restart', canvas.width / 2, 73);
+
+        ctx.font = '27px Arial';
+        ctx.fillText('↻', canvas.width / 2, 100);
+    }
 }
 
 // 시작 화면
