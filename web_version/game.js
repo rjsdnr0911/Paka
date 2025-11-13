@@ -185,22 +185,22 @@ class Trex {
     }
 
     getHitbox() {
-        // 이미지 크기에 정확히 맞는 작은 히트박스
+        // 매우 작은 히트박스 (보이는 이미지보다 작음)
         if (this.ducking) {
-            // 숙인 상태: 작고 낮은 히트박스
+            // 숙인 상태: 매우 작고 낮은 히트박스
             return {
-                x: this.x + 8,
-                y: this.groundY + 24,
-                width: this.width - 16,
-                height: this.height - 10
+                x: this.x + 12,
+                y: this.groundY + 28,
+                width: this.width - 24,
+                height: this.height - 14
             };
         } else {
-            // 서있는 상태: 여백을 더 준 작은 히트박스
+            // 서있는 상태: 큰 여백을 준 작은 히트박스
             return {
-                x: this.x + 8,
-                y: this.y + 8,
-                width: this.width - 16,
-                height: this.height - 16
+                x: this.x + 12,
+                y: this.y + 12,
+                width: this.width - 24,
+                height: this.height - 20
             };
         }
     }
@@ -271,9 +271,9 @@ class Obstacle {
 
     collidesWith(trex) {
         const trexBox = trex.getHitbox();
-        const buffer = 6;  // 더 큰 여백으로 정확한 충돌 감지
+        const buffer = 8;  // 큰 여백으로 정확한 충돌 감지
 
-        // 장애물 히트박스 (이미지에 정확히 맞춤)
+        // 장애물 히트박스 (이미지보다 작게)
         const obsBox = {
             x: this.x + buffer,
             y: this.y + buffer,
