@@ -106,7 +106,7 @@ class Trex {
         this.width = 44;
         this.height = 47;
         this.x = 25;
-        this.groundY = 93;  // 원본 Chrome 게임과 동일한 위치
+        this.groundY = 91;  // 땅 높이 조정에 맞춰 공룡 위치 조정
         this.y = this.groundY;
         this.yVelocity = 0;
         this.jumping = false;
@@ -237,8 +237,8 @@ class Obstacle {
             this.image = cactusImages[Math.floor(Math.random() * cactusImages.length)];
             this.width = this.image.width;
             this.height = this.image.height;
-            // 바닥 바로 위에 배치 (원본과 동일)
-            this.y = 143 - this.height;
+            // 바닥(138px) 바로 위에 배치
+            this.y = 138 - this.height;
         }
     }
 
@@ -315,12 +315,13 @@ class Cloud {
 class Horizon {
     constructor() {
         this.x = 0;
-        this.groundY = 143;
+        this.groundY = 138;  // 땅 위치 조정
+        this.groundHeight = 12;  // 원본 Chrome 게임처럼 얇은 땅
     }
 
     update() {
         this.x -= currentSpeed;
-        if (this.x <= -images.ground.width) {
+        if (this.x <= -GAME_WIDTH) {
             this.x = 0;
         }
     }
@@ -328,9 +329,15 @@ class Horizon {
     draw() {
         if (!allImagesLoaded) return;
 
-        // 바닥 이미지 반복
-        ctx.drawImage(images.ground, this.x, this.groundY);
-        ctx.drawImage(images.ground, this.x + images.ground.width, this.groundY);
+        // 바닥 이미지를 얇게 반복 (원본 게임처럼)
+        ctx.drawImage(images.ground,
+            0, 0, images.ground.width, images.ground.height,  // 소스
+            this.x, this.groundY, GAME_WIDTH, this.groundHeight  // 목적지 (얇게)
+        );
+        ctx.drawImage(images.ground,
+            0, 0, images.ground.width, images.ground.height,  // 소스
+            this.x + GAME_WIDTH, this.groundY, GAME_WIDTH, this.groundHeight  // 목적지 (얇게)
+        );
     }
 }
 
