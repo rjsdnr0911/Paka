@@ -271,9 +271,16 @@ class Obstacle {
 
     collidesWith(trex) {
         const trexBox = trex.getHitbox();
-        const buffer = 8;  // 큰 여백으로 정확한 충돌 감지
 
-        // 장애물 히트박스 (이미지보다 작게)
+        // 장애물 종류에 따라 다른 buffer 적용
+        let buffer;
+        if (this.type === 'BIRD') {
+            buffer = 10;  // 새는 더 작은 히트박스
+        } else {
+            buffer = 12;  // 선인장은 매우 작은 히트박스
+        }
+
+        // 장애물 히트박스 (이미지보다 훨씬 작게)
         const obsBox = {
             x: this.x + buffer,
             y: this.y + buffer,
