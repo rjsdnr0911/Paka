@@ -172,7 +172,7 @@ class Trex {
             img = images.dinoDamaged;
         } else if (this.ducking) {
             img = this.animFrame === 0 ? images.dinoDown : images.dinoDown2;
-            yPos = this.groundY + 18;
+            yPos = this.groundY + 17;
         } else {
             if (this.jumping) {
                 img = images.dino;
@@ -182,6 +182,27 @@ class Trex {
         }
 
         ctx.drawImage(img, this.x, yPos);
+    }
+
+    getHitbox() {
+        // 이미지 크기에 맞는 정확한 히트박스
+        if (this.ducking) {
+            // 숙인 상태: 더 작고 낮은 히트박스
+            return {
+                x: this.x + 5,
+                y: this.groundY + 20,
+                width: this.width - 10,
+                height: this.height - 5
+            };
+        } else {
+            // 서있는 상태: 일반 히트박스
+            return {
+                x: this.x + 5,
+                y: this.y + 5,
+                width: this.width - 10,
+                height: this.height - 10
+            };
+        }
     }
 
     reset() {
@@ -215,7 +236,7 @@ class Obstacle {
             this.image = cactusImages[Math.floor(Math.random() * cactusImages.length)];
             this.width = this.image.width;
             this.height = this.image.height;
-            this.y = 95 + (47 - this.height);
+            this.y = 110;  // 선인장을 더 아래로 이동
         }
     }
 
@@ -247,12 +268,22 @@ class Obstacle {
     }
 
     collidesWith(trex) {
-        const buffer = 4;
+        const trexBox = trex.getHitbox();
+        const buffer = 3;
+
+        // 장애물 히트박스 (이미지 크기에 맞춤)
+        const obsBox = {
+            x: this.x + buffer,
+            y: this.y + buffer,
+            width: this.width - buffer * 2,
+            height: this.height - buffer * 2
+        };
+
         return !(
-            trex.x + buffer > this.x + this.width ||
-            trex.x + trex.width - buffer < this.x ||
-            trex.y + buffer > this.y + this.height ||
-            trex.y + trex.height - buffer < this.y
+            trexBox.x + trexBox.width < obsBox.x ||
+            trexBox.x > obsBox.x + obsBox.width ||
+            trexBox.y + trexBox.height < obsBox.y ||
+            trexBox.y > obsBox.y + obsBox.height
         );
     }
 }
@@ -363,19 +394,36 @@ class GameOverPanel {
 
         ctx.save();
 
+        // 배경 원 (흰색)
+        ctx.fillStyle = '#f7f7f7';
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, size / 2 - 1, 0, Math.PI * 2);
+        ctx.fill();
+
         // 외곽 원
         ctx.strokeStyle = '#535353';
-        ctx.lineWidth = 2;
+        ctx.lineWidth = 2.5;
         ctx.beginPath();
         ctx.arc(centerX, centerY, size / 2, 0, Math.PI * 2);
         ctx.stroke();
 
-        // 화살표 그리기 (↻)
+        // 재시작 아이콘 (회전 화살표 그리기)
+        ctx.strokeStyle = '#535353';
         ctx.fillStyle = '#535353';
-        ctx.font = 'bold 24px Arial';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText('↻', centerX, centerY);
+        ctx.lineWidth = 2;
+
+        // 원형 화살표
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, 10, -Math.PI / 4, Math.PI * 3 / 2, false);
+        ctx.stroke();
+
+        // 화살표 머리
+        ctx.beginPath();
+        ctx.moveTo(centerX - 10, centerY - 3);
+        ctx.lineTo(centerX - 10, centerY + 3);
+        ctx.lineTo(centerX - 5, centerY);
+        ctx.closePath();
+        ctx.fill();
 
         ctx.restore();
     }
@@ -433,8 +481,17 @@ function spawnObstacle() {
 
 // 구름 생성
 function spawnCloud() {
-    if (clouds.length < 20 && Math.random() < 0.5) {
+    if (clouds.length < 6 && Math.random() < 0.3) {
         clouds.push(new Cloud());
+    }
+}
+
+// 초기 구름 생성 (게임 시작 시)
+function initClouds() {
+    for (let i = 0; i < 3; i++) {
+        const cloud = new Cloud();
+        cloud.x = Math.random() * GAME_WIDTH;
+        clouds.push(cloud);
     }
 }
 
@@ -458,7 +515,7 @@ function update() {
 
     // 구름 업데이트
     cloudTimer++;
-    if (cloudTimer > 100) {
+    if (cloudTimer > 200) {  // 더 천천히 생성
         spawnCloud();
         cloudTimer = 0;
     }
@@ -617,4 +674,5 @@ document.addEventListener('touchend', (e) => {
 
 // 게임 시작
 console.log('🦖 Chrome Dinosaur Game Ready!');
+initClouds();  // 초기 구름 생성
 gameLoop();
