@@ -1,90 +1,100 @@
-// ===== Chrome 공룡 게임 - 원본과 동일하게 재구현 =====
+// ===== Chrome 공룡 게임 - 개별 이미지 파일 사용 =====
 
 // 캔버스 설정
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
-// 게임 크기 (원본 Chrome 게임 크기)
+// 게임 크기
 const GAME_WIDTH = 600;
 const GAME_HEIGHT = 150;
 
 canvas.width = GAME_WIDTH;
 canvas.height = GAME_HEIGHT;
 
-// 스프라이트 이미지 로드
-const spriteImage = new Image();
-let spriteLoaded = false;
-spriteImage.onload = () => {
-    spriteLoaded = true;
-    console.log('🦖 Sprite loaded!');
+// 이미지 로드
+const images = {
+    dino: new Image(),
+    dino2: new Image(),
+    dino3: new Image(),
+    dinoDamaged: new Image(),
+    dinoDown: new Image(),
+    dinoDown2: new Image(),
+    bird: new Image(),
+    bird2: new Image(),
+    cactus: new Image(),
+    cactus2: new Image(),
+    cactus3: new Image(),
+    cactus4: new Image(),
+    cactus5: new Image(),
+    cloud: new Image(),
+    ground: new Image(),
+    gameover: new Image(),
+    hi: new Image(),
+    numbers: []
 };
-spriteImage.src = 'sprite.png';
 
-// 스프라이트 좌표 (Chrome 공룡 게임 원본)
-const SPRITE = {
-    DINO: {
-        STANDING: [
-            { x: 848, y: 2, w: 44, h: 47 },
-            { x: 892, y: 2, w: 44, h: 47 }
-        ],
-        DUCKING: [
-            { x: 1112, y: 19, w: 59, h: 30 },
-            { x: 1171, y: 19, w: 59, h: 30 }
-        ],
-        DEAD: { x: 1068, y: 2, w: 44, h: 47 }
-    },
-    CACTUS: {
-        SMALL: [
-            { x: 228, y: 2, w: 17, h: 35 }
-        ],
-        LARGE: [
-            { x: 332, y: 2, w: 25, h: 50 }
-        ],
-        GROUP: [
-            { x: 245, y: 2, w: 34, h: 50 },
-            { x: 304, y: 2, w: 51, h: 50 }
-        ]
-    },
-    PTERODACTYL: [
-        { x: 134, y: 2, w: 46, h: 40 },
-        { x: 180, y: 2, w: 46, h: 40 }
-    ],
-    CLOUD: { x: 86, y: 2, w: 46, h: 14 },
-    HORIZON: { x: 2, y: 54, w: 1200, h: 12 },
-    RESTART: { x: 2, y: 2, w: 36, h: 32 },
-    TEXT: {
-        GAME_OVER: { x: 655, y: 14, w: 191, h: 11 },
-        HI: { x: 755, y: 2, w: 20, h: 13 }
-    },
-    NUMBERS: [
-        { x: 655, y: 2, w: 10, h: 13 }, // 0
-        { x: 665, y: 2, w: 10, h: 13 }, // 1
-        { x: 675, y: 2, w: 10, h: 13 }, // 2
-        { x: 685, y: 2, w: 10, h: 13 }, // 3
-        { x: 695, y: 2, w: 10, h: 13 }, // 4
-        { x: 705, y: 2, w: 10, h: 13 }, // 5
-        { x: 715, y: 2, w: 10, h: 13 }, // 6
-        { x: 725, y: 2, w: 10, h: 13 }, // 7
-        { x: 735, y: 2, w: 10, h: 13 }, // 8
-        { x: 745, y: 2, w: 10, h: 13 }  // 9
-    ]
-};
+// 숫자 이미지 로드
+for (let i = 0; i <= 9; i++) {
+    images.numbers[i] = new Image();
+    images.numbers[i].src = `${i}.png`;
+}
+
+// 이미지 소스 설정
+images.dino.src = 'dino.png';
+images.dino2.src = 'dino2.png';
+images.dino3.src = 'dino3.png';
+images.dinoDamaged.src = 'dino_damaged.png';
+images.dinoDown.src = 'dino_down.png';
+images.dinoDown2.src = 'dino_down2.png';
+images.bird.src = 'bird.png';
+images.bird2.src = 'bird2.png';
+images.cactus.src = 'cactus.png';
+images.cactus2.src = 'cactus2.png';
+images.cactus3.src = 'cactus3.png';
+images.cactus4.src = 'cactus4.png';
+images.cactus5.src = 'cactus5.png';
+images.cloud.src = 'cloud.png';
+images.ground.src = 'ground.png';
+images.gameover.src = 'gameover.png';
+images.hi.src = 'hi.png';
+
+// 이미지 로드 완료 체크
+let imagesLoaded = 0;
+let totalImages = 27;
+let allImagesLoaded = false;
+
+Object.values(images).forEach(img => {
+    if (img instanceof Image) {
+        img.onload = () => {
+            imagesLoaded++;
+            if (imagesLoaded === totalImages) {
+                allImagesLoaded = true;
+                console.log('🦖 All images loaded!');
+            }
+        };
+    }
+});
+
+images.numbers.forEach(img => {
+    img.onload = () => {
+        imagesLoaded++;
+        if (imagesLoaded === totalImages) {
+            allImagesLoaded = true;
+            console.log('🦖 All images loaded!');
+        }
+    };
+});
 
 // 게임 상수
-const FPS = 60;
 const GRAVITY = 0.6;
 const INITIAL_JUMP_VELOCITY = -10;
-const MIN_JUMP_HEIGHT = 30;
 const SPEED = 6;
 const MAX_SPEED = 13;
 const ACCELERATION = 0.001;
-const CLOUD_FREQUENCY = 0.5;
-const MAX_CLOUDS = 20;
 
 // 게임 변수
 let isRunning = false;
 let gameOver = false;
-let score = 0;
 let highScore = parseInt(localStorage.getItem('highScore')) || 0;
 let currentSpeed = SPEED;
 let distanceRan = 0;
@@ -153,25 +163,25 @@ class Trex {
     }
 
     draw() {
-        if (!spriteLoaded) return;
+        if (!allImagesLoaded) return;
 
-        let sprite;
+        let img;
         let yPos = this.y;
 
         if (this.crashed) {
-            sprite = SPRITE.DINO.DEAD;
+            img = images.dinoDamaged;
         } else if (this.ducking) {
-            sprite = SPRITE.DINO.DUCKING[this.animFrame];
+            img = this.animFrame === 0 ? images.dinoDown : images.dinoDown2;
             yPos = this.groundY + 18;
         } else {
-            sprite = SPRITE.DINO.STANDING[this.jumping ? 0 : this.animFrame];
+            if (this.jumping) {
+                img = images.dino;
+            } else {
+                img = this.animFrame === 0 ? images.dino2 : images.dino3;
+            }
         }
 
-        ctx.drawImage(
-            spriteImage,
-            sprite.x, sprite.y, sprite.w, sprite.h,
-            this.x, yPos, sprite.w, sprite.h
-        );
+        ctx.drawImage(img, this.x, yPos);
     }
 
     reset() {
@@ -186,59 +196,54 @@ class Trex {
 
 // 장애물 클래스
 class Obstacle {
-    constructor(type, speedOffset) {
+    constructor(type) {
         this.type = type;
-        this.speedOffset = speedOffset;
         this.remove = false;
         this.animFrame = 0;
         this.animDelay = 0;
-
-        const sprites = type === 'PTERODACTYL' ? SPRITE.PTERODACTYL :
-                       type === 'CACTUS_SMALL' ? SPRITE.CACTUS.SMALL :
-                       type === 'CACTUS_LARGE' ? SPRITE.CACTUS.LARGE :
-                       SPRITE.CACTUS.GROUP;
-
-        this.sprite = sprites[0];
-        this.width = this.sprite.w;
-        this.height = this.sprite.h;
         this.x = GAME_WIDTH + Math.random() * 50;
 
-        if (type === 'PTERODACTYL') {
+        if (type === 'BIRD') {
+            this.images = [images.bird, images.bird2];
+            this.width = images.bird.width;
+            this.height = images.bird.height;
             const heights = [50, 75, 95];
             this.y = heights[Math.floor(Math.random() * heights.length)];
-            this.sprites = SPRITE.PTERODACTYL;
         } else {
+            // 선인장 타입
+            const cactusImages = [images.cactus, images.cactus2, images.cactus3, images.cactus4, images.cactus5];
+            this.image = cactusImages[Math.floor(Math.random() * cactusImages.length)];
+            this.width = this.image.width;
+            this.height = this.image.height;
             this.y = 95 + (47 - this.height);
-            this.sprites = sprites;
         }
     }
 
     update() {
-        this.x -= currentSpeed + this.speedOffset;
+        this.x -= currentSpeed;
 
         if (this.x + this.width < 0) {
             this.remove = true;
         }
 
-        // 익룡 애니메이션
-        if (this.type === 'PTERODACTYL') {
+        // 새 날개 애니메이션
+        if (this.type === 'BIRD') {
             this.animDelay++;
             if (this.animDelay > 5) {
                 this.animFrame = this.animFrame === 0 ? 1 : 0;
-                this.sprite = this.sprites[this.animFrame];
                 this.animDelay = 0;
             }
         }
     }
 
     draw() {
-        if (!spriteLoaded) return;
+        if (!allImagesLoaded) return;
 
-        ctx.drawImage(
-            spriteImage,
-            this.sprite.x, this.sprite.y, this.sprite.w, this.sprite.h,
-            this.x, this.y, this.sprite.w, this.sprite.h
-        );
+        if (this.type === 'BIRD') {
+            ctx.drawImage(this.images[this.animFrame], this.x, this.y);
+        } else {
+            ctx.drawImage(this.image, this.x, this.y);
+        }
     }
 
     collidesWith(trex) {
@@ -255,9 +260,6 @@ class Obstacle {
 // 구름 클래스
 class Cloud {
     constructor() {
-        this.sprite = SPRITE.CLOUD;
-        this.width = this.sprite.w;
-        this.height = this.sprite.h;
         this.x = GAME_WIDTH + Math.random() * 100;
         this.y = Math.random() * 50 + 10;
         this.remove = false;
@@ -265,18 +267,14 @@ class Cloud {
 
     update() {
         this.x -= currentSpeed * 0.2;
-        if (this.x + this.width < 0) {
+        if (this.x + images.cloud.width < 0) {
             this.remove = true;
         }
     }
 
     draw() {
-        if (!spriteLoaded) return;
-        ctx.drawImage(
-            spriteImage,
-            this.sprite.x, this.sprite.y, this.sprite.w, this.sprite.h,
-            this.x, this.y, this.sprite.w, this.sprite.h
-        );
+        if (!allImagesLoaded) return;
+        ctx.drawImage(images.cloud, this.x, this.y);
     }
 }
 
@@ -289,50 +287,34 @@ class Horizon {
 
     update() {
         this.x -= currentSpeed;
-        if (this.x <= -GAME_WIDTH) {
+        if (this.x <= -images.ground.width) {
             this.x = 0;
         }
     }
 
     draw() {
-        // 바닥 선
-        ctx.strokeStyle = '#535353';
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.moveTo(0, this.groundY);
-        ctx.lineTo(GAME_WIDTH, this.groundY);
-        ctx.stroke();
+        if (!allImagesLoaded) return;
 
-        // 바닥 패턴 (움직이는 점선)
-        ctx.fillStyle = '#535353';
-        const patternWidth = 20;
-        const patternHeight = 2;
-        const patternGap = 20;
-
-        for (let x = this.x; x < GAME_WIDTH; x += patternWidth + patternGap) {
-            ctx.fillRect(x, this.groundY + 3, patternWidth, patternHeight);
-        }
+        // 바닥 이미지 반복
+        ctx.drawImage(images.ground, this.x, this.groundY);
+        ctx.drawImage(images.ground, this.x + images.ground.width, this.groundY);
     }
 }
 
 // 점수판 클래스
 class ScoreBoard {
     draw() {
-        if (!spriteLoaded) return;
+        if (!allImagesLoaded) return;
 
-        const scoreStr = Math.floor(distanceRan * 0.025).toString().padStart(5, '0');
+        const score = Math.floor(distanceRan * 0.025);
+        const scoreStr = score.toString().padStart(5, '0');
         let x = GAME_WIDTH - 15;
 
-        // 현재 점수 (오른쪽에서 왼쪽으로 그리기)
+        // 현재 점수
         for (let i = scoreStr.length - 1; i >= 0; i--) {
             const digit = parseInt(scoreStr[i]);
-            const sprite = SPRITE.NUMBERS[digit];
-            x -= sprite.w;
-            ctx.drawImage(
-                spriteImage,
-                sprite.x, sprite.y, sprite.w, sprite.h,
-                x, 15, sprite.w, sprite.h
-            );
+            x -= images.numbers[digit].width;
+            ctx.drawImage(images.numbers[digit], x, 15);
             x -= 1;
         }
 
@@ -345,24 +327,14 @@ class ScoreBoard {
             let hiX = x;
             for (let i = hiScoreStr.length - 1; i >= 0; i--) {
                 const digit = parseInt(hiScoreStr[i]);
-                const sprite = SPRITE.NUMBERS[digit];
-                hiX -= sprite.w;
-                ctx.drawImage(
-                    spriteImage,
-                    sprite.x, sprite.y, sprite.w, sprite.h,
-                    hiX, 15, sprite.w, sprite.h
-                );
+                hiX -= images.numbers[digit].width;
+                ctx.drawImage(images.numbers[digit], hiX, 15);
                 hiX -= 1;
             }
 
             // HI 텍스트
-            const hiSprite = SPRITE.TEXT.HI;
-            hiX -= hiSprite.w + 3;
-            ctx.drawImage(
-                spriteImage,
-                hiSprite.x, hiSprite.y, hiSprite.w, hiSprite.h,
-                hiX, 15, hiSprite.w, hiSprite.h
-            );
+            hiX -= images.hi.width + 3;
+            ctx.drawImage(images.hi, hiX, 15);
         }
     }
 }
@@ -370,25 +342,11 @@ class ScoreBoard {
 // 게임 오버 화면
 class GameOverPanel {
     draw() {
-        if (!spriteLoaded) return;
+        if (!allImagesLoaded) return;
 
-        // GAME OVER 텍스트
-        const gameOverSprite = SPRITE.TEXT.GAME_OVER;
-        const x = (GAME_WIDTH - gameOverSprite.w) / 2;
-        ctx.drawImage(
-            spriteImage,
-            gameOverSprite.x, gameOverSprite.y, gameOverSprite.w, gameOverSprite.h,
-            x, 50, gameOverSprite.w, gameOverSprite.h
-        );
-
-        // 재시작 버튼
-        const restartSprite = SPRITE.RESTART;
-        const restartX = (GAME_WIDTH - restartSprite.w) / 2;
-        ctx.drawImage(
-            spriteImage,
-            restartSprite.x, restartSprite.y, restartSprite.w, restartSprite.h,
-            restartX, 70, restartSprite.w, restartSprite.h
-        );
+        // GAME OVER 이미지
+        const x = (GAME_WIDTH - images.gameover.width) / 2;
+        ctx.drawImage(images.gameover, x, 50);
     }
 }
 
@@ -429,23 +387,22 @@ window.addEventListener('orientationchange', () => setTimeout(resizeCanvas, 100)
 
 // 장애물 생성
 function spawnObstacle() {
-    const obstacleTypes = ['CACTUS_SMALL', 'CACTUS_LARGE', 'CACTUS_GROUP', 'PTERODACTYL'];
+    const obstacleTypes = ['CACTUS', 'BIRD'];
     let type;
 
-    // 점수가 낮을 때는 익룡 제외
+    // 점수가 낮을 때는 새 제외
     if (distanceRan < 1000) {
-        type = obstacleTypes[Math.floor(Math.random() * 3)];
+        type = 'CACTUS';
     } else {
-        type = obstacleTypes[Math.floor(Math.random() * 4)];
+        type = obstacleTypes[Math.floor(Math.random() * 2)];
     }
 
-    const speedOffset = Math.random() * 2;
-    obstacles.push(new Obstacle(type, speedOffset));
+    obstacles.push(new Obstacle(type));
 }
 
 // 구름 생성
 function spawnCloud() {
-    if (clouds.length < MAX_CLOUDS && Math.random() < CLOUD_FREQUENCY) {
+    if (clouds.length < 20 && Math.random() < 0.5) {
         clouds.push(new Cloud());
     }
 }
