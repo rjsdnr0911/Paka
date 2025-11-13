@@ -314,32 +314,39 @@ class Cloud {
 // 지평선 클래스
 class Horizon {
     constructor() {
-        this.x = 0;
+        this.x1 = 0;
+        this.x2 = GAME_WIDTH;
         this.groundY = 135;  // 땅 위치
         this.groundHeight = 15;  // 땅 이미지가 잘 보이도록 적절한 높이
     }
 
     update() {
-        this.x -= currentSpeed;
-        // 땅 이미지 너비만큼 이동하면 리셋 (매끄러운 반복)
-        if (this.x <= -images.ground.width) {
-            this.x = 0;
+        this.x1 -= currentSpeed;
+        this.x2 -= currentSpeed;
+
+        // 첫 번째 이미지가 완전히 왼쪽으로 벗어나면 오른쪽으로 이동
+        if (this.x1 + GAME_WIDTH <= 0) {
+            this.x1 = this.x2 + GAME_WIDTH;
+        }
+
+        // 두 번째 이미지가 완전히 왼쪽으로 벗어나면 오른쪽으로 이동
+        if (this.x2 + GAME_WIDTH <= 0) {
+            this.x2 = this.x1 + GAME_WIDTH;
         }
     }
 
     draw() {
         if (!allImagesLoaded) return;
 
-        // 바닥 이미지를 타일처럼 반복 (이어지는 부분이 자연스럽게)
-        const numTiles = Math.ceil(GAME_WIDTH / images.ground.width) + 2;
-
-        for (let i = 0; i < numTiles; i++) {
-            ctx.drawImage(images.ground,
-                0, 0, images.ground.width, images.ground.height,  // 소스
-                this.x + (i * images.ground.width), this.groundY,  // x 위치
-                images.ground.width, this.groundHeight  // 크기 (원본 너비 유지, 높이만 조정)
-            );
-        }
+        // 두 개의 땅 이미지를 교대로 그려서 끊김 없이 연결
+        ctx.drawImage(images.ground,
+            0, 0, images.ground.width, images.ground.height,  // 소스
+            this.x1, this.groundY, GAME_WIDTH, this.groundHeight  // 목적지
+        );
+        ctx.drawImage(images.ground,
+            0, 0, images.ground.width, images.ground.height,  // 소스
+            this.x2, this.groundY, GAME_WIDTH, this.groundHeight  // 목적지
+        );
     }
 }
 
