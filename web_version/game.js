@@ -238,7 +238,7 @@ class Obstacle {
             this.width = this.image.width;
             this.height = this.image.height;
             // 땅 안쪽으로 더 낮게 배치
-            this.y = 142 - this.height;
+            this.y = 145 - this.height;
         }
     }
 
