@@ -185,22 +185,22 @@ class Trex {
     }
 
     getHitbox() {
-        // 매우 작은 히트박스 (보이는 이미지보다 작음)
+        // 매우 작은 히트박스 (보이는 이미지보다 훨씬 작음)
         if (this.ducking) {
-            // 숙인 상태: 매우 작고 낮은 히트박스
+            // 숙인 상태: 극도로 작은 히트박스
             return {
-                x: this.x + 12,
-                y: this.groundY + 28,
-                width: this.width - 24,
-                height: this.height - 14
+                x: this.x + 15,
+                y: this.groundY + 32,
+                width: this.width - 30,
+                height: this.height - 18
             };
         } else {
-            // 서있는 상태: 큰 여백을 준 작은 히트박스
+            // 서있는 상태: 극도로 작은 히트박스
             return {
-                x: this.x + 12,
-                y: this.y + 12,
-                width: this.width - 24,
-                height: this.height - 20
+                x: this.x + 15,
+                y: this.y + 15,
+                width: this.width - 30,
+                height: this.height - 25
             };
         }
     }
@@ -275,7 +275,7 @@ class Obstacle {
         // 장애물 종류에 따라 다른 buffer 적용
         let buffer;
         if (this.type === 'BIRD') {
-            buffer = 10;  // 새는 더 작은 히트박스
+            buffer = 14;  // 새는 극도로 작은 히트박스
         } else {
             buffer = 12;  // 선인장은 매우 작은 히트박스
         }
