@@ -308,33 +308,33 @@ class ScoreBoard {
 
         const score = Math.floor(distanceRan * 0.025);
         const scoreStr = score.toString().padStart(5, '0');
-        let x = GAME_WIDTH - 15;
+        let x = GAME_WIDTH - 10;
 
-        // 현재 점수
+        // 현재 점수 (오른쪽에서 왼쪽으로)
         for (let i = scoreStr.length - 1; i >= 0; i--) {
             const digit = parseInt(scoreStr[i]);
             x -= images.numbers[digit].width;
-            ctx.drawImage(images.numbers[digit], x, 15);
+            ctx.drawImage(images.numbers[digit], x, 10);
             x -= 1;
         }
 
         // HI 점수
         if (highScore > 0) {
             const hiScoreStr = highScore.toString().padStart(5, '0');
-            x -= 25;
+            x -= 30;
 
             // HI 점수 숫자
             let hiX = x;
             for (let i = hiScoreStr.length - 1; i >= 0; i--) {
                 const digit = parseInt(hiScoreStr[i]);
                 hiX -= images.numbers[digit].width;
-                ctx.drawImage(images.numbers[digit], hiX, 15);
+                ctx.drawImage(images.numbers[digit], hiX, 10);
                 hiX -= 1;
             }
 
             // HI 텍스트
-            hiX -= images.hi.width + 3;
-            ctx.drawImage(images.hi, hiX, 15);
+            hiX -= images.hi.width + 5;
+            ctx.drawImage(images.hi, hiX, 10);
         }
     }
 }
@@ -345,8 +345,39 @@ class GameOverPanel {
         if (!allImagesLoaded) return;
 
         // GAME OVER 이미지
-        const x = (GAME_WIDTH - images.gameover.width) / 2;
-        ctx.drawImage(images.gameover, x, 50);
+        const gameOverX = (GAME_WIDTH - images.gameover.width) / 2;
+        const gameOverY = 50;
+        ctx.drawImage(images.gameover, gameOverX, gameOverY);
+
+        // 재시작 버튼 (아이콘 그리기)
+        const buttonX = GAME_WIDTH / 2;
+        const buttonY = gameOverY + images.gameover.height + 20;
+
+        this.drawRestartButton(buttonX, buttonY);
+    }
+
+    drawRestartButton(x, y) {
+        const size = 36;
+        const centerX = x;
+        const centerY = y;
+
+        ctx.save();
+
+        // 외곽 원
+        ctx.strokeStyle = '#535353';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, size / 2, 0, Math.PI * 2);
+        ctx.stroke();
+
+        // 화살표 그리기 (↻)
+        ctx.fillStyle = '#535353';
+        ctx.font = 'bold 24px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('↻', centerX, centerY);
+
+        ctx.restore();
     }
 }
 
