@@ -321,7 +321,8 @@ class Horizon {
 
     update() {
         this.x -= currentSpeed;
-        if (this.x <= -GAME_WIDTH) {
+        // 땅 이미지 너비만큼 이동하면 리셋 (매끄러운 반복)
+        if (this.x <= -images.ground.width) {
             this.x = 0;
         }
     }
@@ -329,15 +330,16 @@ class Horizon {
     draw() {
         if (!allImagesLoaded) return;
 
-        // 바닥 이미지 반복 (디테일이 잘 보이도록)
-        ctx.drawImage(images.ground,
-            0, 0, images.ground.width, images.ground.height,  // 소스
-            this.x, this.groundY, GAME_WIDTH, this.groundHeight  // 목적지
-        );
-        ctx.drawImage(images.ground,
-            0, 0, images.ground.width, images.ground.height,  // 소스
-            this.x + GAME_WIDTH, this.groundY, GAME_WIDTH, this.groundHeight  // 목적지
-        );
+        // 바닥 이미지를 타일처럼 반복 (이어지는 부분이 자연스럽게)
+        const numTiles = Math.ceil(GAME_WIDTH / images.ground.width) + 2;
+
+        for (let i = 0; i < numTiles; i++) {
+            ctx.drawImage(images.ground,
+                0, 0, images.ground.width, images.ground.height,  // 소스
+                this.x + (i * images.ground.width), this.groundY,  // x 위치
+                images.ground.width, this.groundHeight  // 크기 (원본 너비 유지, 높이만 조정)
+            );
+        }
     }
 }
 
