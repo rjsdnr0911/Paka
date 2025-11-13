@@ -24,14 +24,14 @@ spriteImage.src = 'sprite.png';
 const SPRITE = {
     DINO: {
         STANDING: [
-            { x: 936, y: 2, w: 44, h: 47 },
-            { x: 980, y: 2, w: 44, h: 47 }
+            { x: 848, y: 2, w: 44, h: 47 },
+            { x: 892, y: 2, w: 44, h: 47 }
         ],
         DUCKING: [
             { x: 1112, y: 19, w: 59, h: 30 },
             { x: 1171, y: 19, w: 59, h: 30 }
         ],
-        DEAD: { x: 1024, y: 2, w: 44, h: 47 }
+        DEAD: { x: 1068, y: 2, w: 44, h: 47 }
     },
     CACTUS: {
         SMALL: [
@@ -96,7 +96,7 @@ class Trex {
         this.width = 44;
         this.height = 47;
         this.x = 25;
-        this.groundY = 93;
+        this.groundY = 95;
         this.y = this.groundY;
         this.yVelocity = 0;
         this.jumping = false;
@@ -162,7 +162,7 @@ class Trex {
             sprite = SPRITE.DINO.DEAD;
         } else if (this.ducking) {
             sprite = SPRITE.DINO.DUCKING[this.animFrame];
-            yPos = this.groundY + 17;
+            yPos = this.groundY + 18;
         } else {
             sprite = SPRITE.DINO.STANDING[this.jumping ? 0 : this.animFrame];
         }
@@ -204,11 +204,11 @@ class Obstacle {
         this.x = GAME_WIDTH + Math.random() * 50;
 
         if (type === 'PTERODACTYL') {
-            const heights = [50, 75, 100];
+            const heights = [50, 75, 95];
             this.y = heights[Math.floor(Math.random() * heights.length)];
             this.sprites = SPRITE.PTERODACTYL;
         } else {
-            this.y = 93 + (47 - this.height);
+            this.y = 95 + (47 - this.height);
             this.sprites = sprites;
         }
     }
@@ -284,7 +284,7 @@ class Cloud {
 class Horizon {
     constructor() {
         this.x = 0;
-        this.groundY = 127;
+        this.groundY = 143;
     }
 
     update() {
@@ -321,9 +321,9 @@ class ScoreBoard {
         if (!spriteLoaded) return;
 
         const scoreStr = Math.floor(distanceRan * 0.025).toString().padStart(5, '0');
-        let x = GAME_WIDTH - 10;
+        let x = GAME_WIDTH - 15;
 
-        // 현재 점수
+        // 현재 점수 (오른쪽에서 왼쪽으로 그리기)
         for (let i = scoreStr.length - 1; i >= 0; i--) {
             const digit = parseInt(scoreStr[i]);
             const sprite = SPRITE.NUMBERS[digit];
@@ -331,25 +331,17 @@ class ScoreBoard {
             ctx.drawImage(
                 spriteImage,
                 sprite.x, sprite.y, sprite.w, sprite.h,
-                x, 10, sprite.w, sprite.h
+                x, 15, sprite.w, sprite.h
             );
-            x -= 2;
+            x -= 1;
         }
 
         // HI 점수
         if (highScore > 0) {
             const hiScoreStr = highScore.toString().padStart(5, '0');
-            x -= 30;
+            x -= 25;
 
-            // HI 텍스트
-            const hiSprite = SPRITE.TEXT.HI;
-            ctx.drawImage(
-                spriteImage,
-                hiSprite.x, hiSprite.y, hiSprite.w, hiSprite.h,
-                x - hiSprite.w - 5, 10, hiSprite.w, hiSprite.h
-            );
-
-            // HI 점수
+            // HI 점수 숫자
             let hiX = x;
             for (let i = hiScoreStr.length - 1; i >= 0; i--) {
                 const digit = parseInt(hiScoreStr[i]);
@@ -358,10 +350,19 @@ class ScoreBoard {
                 ctx.drawImage(
                     spriteImage,
                     sprite.x, sprite.y, sprite.w, sprite.h,
-                    hiX, 10, sprite.w, sprite.h
+                    hiX, 15, sprite.w, sprite.h
                 );
-                hiX -= 2;
+                hiX -= 1;
             }
+
+            // HI 텍스트
+            const hiSprite = SPRITE.TEXT.HI;
+            hiX -= hiSprite.w + 3;
+            ctx.drawImage(
+                spriteImage,
+                hiSprite.x, hiSprite.y, hiSprite.w, hiSprite.h,
+                hiX, 15, hiSprite.w, hiSprite.h
+            );
         }
     }
 }
@@ -377,7 +378,7 @@ class GameOverPanel {
         ctx.drawImage(
             spriteImage,
             gameOverSprite.x, gameOverSprite.y, gameOverSprite.w, gameOverSprite.h,
-            x, 40, gameOverSprite.w, gameOverSprite.h
+            x, 50, gameOverSprite.w, gameOverSprite.h
         );
 
         // 재시작 버튼
@@ -386,7 +387,7 @@ class GameOverPanel {
         ctx.drawImage(
             spriteImage,
             restartSprite.x, restartSprite.y, restartSprite.w, restartSprite.h,
-            restartX, 60, restartSprite.w, restartSprite.h
+            restartX, 70, restartSprite.w, restartSprite.h
         );
     }
 }
