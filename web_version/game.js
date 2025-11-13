@@ -172,7 +172,7 @@ class Trex {
             img = images.dinoDamaged;
         } else if (this.ducking) {
             img = this.animFrame === 0 ? images.dinoDown : images.dinoDown2;
-            yPos = this.groundY + 17;  // 숙인 자세가 땅에 꺼지지 않도록 조정
+            yPos = this.groundY + 12;  // 숙인 자세를 위로 올려 땅과 자연스럽게 닿도록 조정
         } else {
             if (this.jumping) {
                 img = images.dino;
