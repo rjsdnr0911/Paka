@@ -104,10 +104,8 @@ let score = 0;
 let highScore = localStorage.getItem('dinoHighScore') || 0;
 let gameRunning = false;
 let gameOver = false;
-let lives = 3;
-let invincible = false;
-let invincibleTimer = 0;
 const MAX_SPEED = 13; // 최대 속도 제한
+const MAX_SCORE = 99999; // 최대 점수
 
 // 공룡 객체
 const dino = {
@@ -174,6 +172,13 @@ const dino = {
             return { x: this.x + 5, y: this.y + 20, width: 54, height: 25 };
         }
         return { x: this.x + 5, y: this.y + 5, width: 34, height: 37 };
+    },
+
+    reset() {
+        this.y = 130 - this.height;
+        this.dy = 0;
+        this.ducking = false;
+        this.grounded = false;
     }
 };
 
@@ -279,67 +284,44 @@ for (let i = 0; i < 3; i++) {
     clouds.push(cloud);
 }
 
+// 스프라이트 숫자 그리기 헬퍼 함수
+function drawSpriteNumber(num, x, y) {
+    if (!spriteLoaded) return x;
+
+    const numStr = Math.floor(num).toString().padStart(5, '0');
+    let currentX = x;
+
+    for (let i = 0; i < numStr.length; i++) {
+        const digit = parseInt(numStr[i]);
+        const sprite = SPRITES.NUMBERS[digit];
+        ctx.drawImage(spriteImage, sprite.x, sprite.y, sprite.w, sprite.h,
+            currentX, y, sprite.w, sprite.h);
+        currentX += sprite.w + 1; // 1픽셀 간격
+    }
+
+    return currentX;
+}
+
 // 점수 그리기
 function drawScore() {
-    const scoreText = Math.floor(score).toString().padStart(5, '0');
-    const hiText = 'HI ' + highScore.toString().padStart(5, '0');
+    if (!spriteLoaded) return;
 
-    ctx.fillStyle = '#535353';
-    ctx.font = '16px "Courier New", monospace';
-    ctx.textAlign = 'right';
+    const currentScore = Math.min(Math.floor(score), MAX_SCORE);
+    const rightX = canvas.width - 15;
 
-    // 최고 점수
-    ctx.fillText(hiText, canvas.width - 107, 27);
-    // 현재 점수
-    ctx.fillText(scoreText, canvas.width - 13, 27);
-}
+    // 현재 점수 (오른쪽 정렬)
+    drawSpriteNumber(currentScore, rightX - (5 * 11), 20);
 
-// 하트 그리기 (픽셀아트 스타일)
-function drawHearts() {
-    const heartSize = 3; // 픽셀 크기
-    const startX = 13;
-    const startY = 16;
-    const spacing = 40;
-
-    ctx.fillStyle = '#535353';
-
-    for (let i = 0; i < 3; i++) {
-        const x = startX + i * spacing;
-        const y = startY;
-
-        if (i < lives) {
-            // 채워진 하트
-            ctx.fillStyle = invincible && invincibleTimer % 10 < 5 ? '#c9c9c9' : '#535353';
-        } else {
-            // 빈 하트 (외곽선만)
-            ctx.fillStyle = '#c9c9c9';
-        }
-
-        // 하트 모양 픽셀아트
-        // 상단 두 개의 원
-        ctx.fillRect(x + heartSize * 1, y, heartSize * 2, heartSize);
-        ctx.fillRect(x + heartSize * 4, y, heartSize * 2, heartSize);
-
-        // 중간 넓은 부분
-        ctx.fillRect(x, y + heartSize, heartSize * 7, heartSize);
-        ctx.fillRect(x, y + heartSize * 2, heartSize * 7, heartSize);
-
-        // 아래로 좁아지는 부분
-        ctx.fillRect(x + heartSize, y + heartSize * 3, heartSize * 5, heartSize);
-        ctx.fillRect(x + heartSize * 2, y + heartSize * 4, heartSize * 3, heartSize);
-        ctx.fillRect(x + heartSize * 3, y + heartSize * 5, heartSize, heartSize);
-
-        // 빈 하트인 경우 내부를 흰색으로
-        if (i >= lives) {
-            ctx.fillStyle = '#fff';
-            ctx.fillRect(x + heartSize * 2, y + heartSize, heartSize, heartSize);
-            ctx.fillRect(x + heartSize * 4, y + heartSize, heartSize, heartSize);
-            ctx.fillRect(x + heartSize * 1, y + heartSize * 2, heartSize * 5, heartSize);
-            ctx.fillRect(x + heartSize * 2, y + heartSize * 3, heartSize * 3, heartSize);
-            ctx.fillRect(x + heartSize * 3, y + heartSize * 4, heartSize, heartSize);
-        }
+    // "HI" 텍스트와 최고 점수
+    if (highScore > 0) {
+        const hiSprite = SPRITES.HI;
+        const hiX = rightX - (5 * 11) - 60;
+        ctx.drawImage(spriteImage, hiSprite.x, hiSprite.y, hiSprite.w, hiSprite.h,
+            hiX, 20, hiSprite.w, hiSprite.h);
+        drawSpriteNumber(highScore, hiX + hiSprite.w + 5, 20);
     }
 }
+
 
 // 바닥 그리기
 function drawGround() {
@@ -414,24 +396,17 @@ function update() {
     // 공룡 업데이트
     dino.update();
 
-    // 무적 타이머 업데이트
-    if (invincible) {
-        invincibleTimer++;
-        if (invincibleTimer > 60) { // 약 1초 무적
-            invincible = false;
-            invincibleTimer = 0;
-        }
+    // 점수 증가 (최대 99999까지)
+    if (score < MAX_SCORE) {
+        score += 0.1;
     }
-
-    // 점수 증가
-    score += 0.1;
 
     // 속도 증가 (천천히, 최대 속도 제한)
     if (Math.floor(score) % 100 === 0 && Math.floor(score) > 0) {
         if (gameSpeed < MAX_SPEED) {
-            gameSpeed += 0.2; // 0.5에서 0.2로 감소
+            gameSpeed += 0.2;
         }
-        obstacleInterval = Math.max(60, obstacleInterval - 2); // 최소 간격 50->60, 감소율 5->2
+        obstacleInterval = Math.max(60, obstacleInterval - 2);
     }
 
     // 장애물 생성
@@ -445,23 +420,16 @@ function update() {
     for (let i = obstacles.length - 1; i >= 0; i--) {
         obstacles[i].update();
 
-        // 충돌 체크 (무적 상태가 아닐 때만)
-        if (!invincible && obstacles[i].collidesWith(dino) && !obstacles[i].passed) {
+        // 충돌 체크 - 한 번 부딪히면 게임 오버
+        if (obstacles[i].collidesWith(dino) && !obstacles[i].passed) {
             obstacles[i].passed = true; // 중복 충돌 방지
-            lives--;
 
-            if (lives <= 0) {
-                // 게임 오버
-                gameOver = true;
-                const finalScore = Math.floor(score);
-                if (finalScore > highScore) {
-                    highScore = finalScore;
-                    localStorage.setItem('dinoHighScore', highScore);
-                }
-            } else {
-                // 하트가 남아있으면 무적 시간 부여
-                invincible = true;
-                invincibleTimer = 0;
+            // 게임 오버
+            gameOver = true;
+            const finalScore = Math.min(Math.floor(score), MAX_SCORE);
+            if (finalScore > highScore) {
+                highScore = finalScore;
+                localStorage.setItem('dinoHighScore', highScore);
             }
         }
 
@@ -501,14 +469,9 @@ function draw() {
     // 점수
     drawScore();
 
-    // 하트
-    drawHearts();
-
     if (gameRunning && !gameOver) {
-        // 공룡 (무적 상태면 깜빡임)
-        if (!invincible || invincibleTimer % 6 < 3) {
-            dino.draw();
-        }
+        // 공룡
+        dino.draw();
 
         // 장애물
         obstacles.forEach(obstacle => obstacle.draw());
@@ -527,10 +490,7 @@ function draw() {
 
 // 게임 리셋
 function resetGame() {
-    dino.y = 0;
-    dino.dy = 0;
-    dino.ducking = false;
-    dino.grounded = false;
+    dino.reset();
     score = 0;
     gameSpeed = 6;
     obstacles = [];
@@ -538,9 +498,6 @@ function resetGame() {
     obstacleInterval = 75;
     gameOver = false;
     gameRunning = true;
-    lives = 3;
-    invincible = false;
-    invincibleTimer = 0;
 }
 
 // 게임 루프
