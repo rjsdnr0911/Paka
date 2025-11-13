@@ -237,8 +237,8 @@ class Obstacle {
             this.image = cactusImages[Math.floor(Math.random() * cactusImages.length)];
             this.width = this.image.width;
             this.height = this.image.height;
-            // 바닥 위에 살짝 낮게 배치
-            this.y = 140 - this.height;
+            // 땅(135px)과 정확히 닿도록 배치
+            this.y = 135 - this.height;
         }
     }
 
