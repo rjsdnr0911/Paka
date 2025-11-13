@@ -106,7 +106,7 @@ class Trex {
         this.width = 44;
         this.height = 47;
         this.x = 25;
-        this.groundY = 95;
+        this.groundY = 93;  // 원본 Chrome 게임과 동일한 위치
         this.y = this.groundY;
         this.yVelocity = 0;
         this.jumping = false;
@@ -172,7 +172,7 @@ class Trex {
             img = images.dinoDamaged;
         } else if (this.ducking) {
             img = this.animFrame === 0 ? images.dinoDown : images.dinoDown2;
-            yPos = this.groundY + 17;
+            yPos = this.groundY + 20;  // 숙인 자세 위치 조정
         } else {
             if (this.jumping) {
                 img = images.dino;
@@ -228,7 +228,8 @@ class Obstacle {
             this.images = [images.bird, images.bird2];
             this.width = images.bird.width;
             this.height = images.bird.height;
-            const heights = [50, 75, 95];
+            // 원본 게임과 동일한 새의 높이
+            const heights = [20, 50, 75];
             this.y = heights[Math.floor(Math.random() * heights.length)];
         } else {
             // 선인장 타입
@@ -236,7 +237,8 @@ class Obstacle {
             this.image = cactusImages[Math.floor(Math.random() * cactusImages.length)];
             this.width = this.image.width;
             this.height = this.image.height;
-            this.y = 110;  // 선인장을 더 아래로 이동
+            // 바닥 바로 위에 배치 (원본과 동일)
+            this.y = 143 - this.height;
         }
     }
 
@@ -522,10 +524,10 @@ function update() {
     clouds.forEach(cloud => cloud.update());
     clouds = clouds.filter(cloud => !cloud.remove);
 
-    // 장애물 생성
+    // 장애물 생성 (원본 게임과 동일한 간격)
     obstacleTimer++;
-    const minGap = 80;
-    const maxGap = 140;
+    const minGap = 50;
+    const maxGap = 100;
     const gapSize = minGap + Math.random() * (maxGap - minGap);
 
     if (obstacleTimer > gapSize) {
