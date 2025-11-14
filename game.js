@@ -536,8 +536,9 @@ function spawnObstacle() {
     const obstacleTypes = ['CACTUS', 'BIRD'];
     let type;
 
-    // 점수가 낮을 때는 새 제외
-    if (distanceRan < 1000) {
+    // 실제 Chrome 게임처럼 450점부터 익룡 등장
+    // distanceRan * 0.025 = score이므로, 450점 = distanceRan 18000
+    if (distanceRan < 18000) {
         type = 'CACTUS';
     } else {
         type = obstacleTypes[Math.floor(Math.random() * 2)];
