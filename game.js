@@ -99,6 +99,9 @@ let highScore = parseInt(localStorage.getItem('highScore')) || 0;
 let currentSpeed = SPEED;
 let distanceRan = 0;
 let frameCount = 0;
+let isNightMode = false;
+let nightModeTransition = 0;
+let lastNightModeChange = 0;
 
 // 공룡 클래스
 class Trex {
@@ -181,7 +184,12 @@ class Trex {
             }
         }
 
+        // 밤 모드일 때 이미지 반전
+        if (isNightMode && nightModeTransition > 0.8) {
+            ctx.filter = 'invert(1)';
+        }
         ctx.drawImage(img, this.x, yPos);
+        ctx.filter = 'none';
     }
 
     getHitbox() {
@@ -262,11 +270,18 @@ class Obstacle {
     draw() {
         if (!allImagesLoaded) return;
 
+        // 밤 모드일 때 이미지 반전
+        if (isNightMode && nightModeTransition > 0.8) {
+            ctx.filter = 'invert(1)';
+        }
+
         if (this.type === 'BIRD') {
             ctx.drawImage(this.images[this.animFrame], this.x, this.y);
         } else {
             ctx.drawImage(this.image, this.x, this.y);
         }
+
+        ctx.filter = 'none';
     }
 
     collidesWith(trex) {
@@ -314,7 +329,13 @@ class Cloud {
 
     draw() {
         if (!allImagesLoaded) return;
+
+        // 밤 모드일 때 이미지 반전
+        if (isNightMode && nightModeTransition > 0.8) {
+            ctx.filter = 'invert(1)';
+        }
         ctx.drawImage(images.cloud, this.x, this.y);
+        ctx.filter = 'none';
     }
 }
 
@@ -345,6 +366,11 @@ class Horizon {
     draw() {
         if (!allImagesLoaded) return;
 
+        // 밤 모드일 때 이미지 반전
+        if (isNightMode && nightModeTransition > 0.8) {
+            ctx.filter = 'invert(1)';
+        }
+
         // 두 개의 땅 이미지를 교대로 그려서 끊김 없이 연결
         ctx.drawImage(images.ground,
             0, 0, images.ground.width, images.ground.height,  // 소스
@@ -354,6 +380,8 @@ class Horizon {
             0, 0, images.ground.width, images.ground.height,  // 소스
             this.x2, this.groundY, GAME_WIDTH, this.groundHeight  // 목적지
         );
+
+        ctx.filter = 'none';
     }
 }
 
@@ -361,6 +389,11 @@ class Horizon {
 class ScoreBoard {
     draw() {
         if (!allImagesLoaded) return;
+
+        // 밤 모드일 때 이미지 반전
+        if (isNightMode && nightModeTransition > 0.8) {
+            ctx.filter = 'invert(1)';
+        }
 
         const score = Math.floor(distanceRan * 0.025);
         const scoreStr = score.toString().padStart(5, '0');
@@ -392,6 +425,8 @@ class ScoreBoard {
             hiX -= images.hi.width + 5;
             ctx.drawImage(images.hi, hiX, 10);
         }
+
+        ctx.filter = 'none';
     }
 }
 
@@ -400,10 +435,17 @@ class GameOverPanel {
     draw() {
         if (!allImagesLoaded) return;
 
+        // 밤 모드일 때 이미지 반전
+        if (isNightMode && nightModeTransition > 0.8) {
+            ctx.filter = 'invert(1)';
+        }
+
         // GAME OVER 이미지
         const gameOverX = (GAME_WIDTH - images.gameover.width) / 2;
         const gameOverY = 50;
         ctx.drawImage(images.gameover, gameOverX, gameOverY);
+
+        ctx.filter = 'none';
 
         // 재시작 버튼 (아이콘 그리기)
         const buttonX = GAME_WIDTH / 2;
@@ -419,22 +461,22 @@ class GameOverPanel {
 
         ctx.save();
 
-        // 배경 원 (흰색)
-        ctx.fillStyle = '#f7f7f7';
+        // 배경 원 (밤/낮 모드에 따라 색상 변경)
+        ctx.fillStyle = isNightMode ? '#202124' : '#f7f7f7';
         ctx.beginPath();
         ctx.arc(centerX, centerY, size / 2 - 1, 0, Math.PI * 2);
         ctx.fill();
 
         // 외곽 원
-        ctx.strokeStyle = '#535353';
+        ctx.strokeStyle = isNightMode ? '#fff' : '#535353';
         ctx.lineWidth = 2.5;
         ctx.beginPath();
         ctx.arc(centerX, centerY, size / 2, 0, Math.PI * 2);
         ctx.stroke();
 
         // 재시작 아이콘 (회전 화살표 그리기)
-        ctx.strokeStyle = '#535353';
-        ctx.fillStyle = '#535353';
+        ctx.strokeStyle = isNightMode ? '#fff' : '#535353';
+        ctx.fillStyle = isNightMode ? '#fff' : '#535353';
         ctx.lineWidth = 2;
 
         // 원형 화살표
@@ -520,12 +562,69 @@ function initClouds() {
     }
 }
 
+// 낮/밤 모드 전환 체크
+function checkNightMode() {
+    const score = Math.floor(distanceRan * 0.025);
+    const nightModeInterval = 700; // 700점마다 전환
+
+    if (Math.floor(score / nightModeInterval) !== lastNightModeChange) {
+        lastNightModeChange = Math.floor(score / nightModeInterval);
+        isNightMode = !isNightMode;
+        nightModeTransition = 0;
+    }
+
+    // 전환 애니메이션
+    if (nightModeTransition < 1) {
+        nightModeTransition += 0.02;
+    }
+}
+
+// 달 그리기
+function drawMoon() {
+    const moonX = GAME_WIDTH - 60;
+    const moonY = 30;
+    const moonRadius = 15;
+
+    // 달
+    ctx.fillStyle = '#fff';
+    ctx.beginPath();
+    ctx.arc(moonX, moonY, moonRadius, 0, Math.PI * 2);
+    ctx.fill();
+
+    // 달 크레이터
+    ctx.fillStyle = 'rgba(200, 200, 200, 0.3)';
+    ctx.beginPath();
+    ctx.arc(moonX - 4, moonY - 3, 3, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(moonX + 3, moonY + 2, 2, 0, Math.PI * 2);
+    ctx.fill();
+}
+
+// 별 그리기
+function drawStars() {
+    ctx.fillStyle = '#fff';
+    const stars = [
+        [50, 20], [120, 35], [200, 15], [280, 40], [350, 25],
+        [430, 30], [500, 18], [550, 38]
+    ];
+
+    stars.forEach(([x, y]) => {
+        ctx.beginPath();
+        ctx.arc(x, y, 1, 0, Math.PI * 2);
+        ctx.fill();
+    });
+}
+
 // 게임 업데이트
 function update() {
     if (!isRunning || gameOver) return;
 
     frameCount++;
     distanceRan += currentSpeed;
+
+    // 낮/밤 모드 체크
+    checkNightMode();
 
     // 속도 증가
     if (currentSpeed < MAX_SPEED) {
@@ -579,9 +678,35 @@ function update() {
 
 // 게임 그리기
 function draw() {
-    // 배경
-    ctx.fillStyle = '#f7f7f7';
+    // 배경 색상 (낮/밤 전환)
+    const dayColor = { r: 247, g: 247, b: 247 };
+    const nightColor = { r: 32, g: 33, b: 36 };
+
+    let bgColor;
+    if (isNightMode) {
+        const t = nightModeTransition;
+        bgColor = {
+            r: Math.floor(dayColor.r + (nightColor.r - dayColor.r) * t),
+            g: Math.floor(dayColor.g + (nightColor.g - dayColor.g) * t),
+            b: Math.floor(dayColor.b + (nightColor.b - dayColor.b) * t)
+        };
+    } else {
+        const t = nightModeTransition;
+        bgColor = {
+            r: Math.floor(nightColor.r + (dayColor.r - nightColor.r) * t),
+            g: Math.floor(nightColor.g + (dayColor.g - nightColor.g) * t),
+            b: Math.floor(nightColor.b + (dayColor.b - nightColor.b) * t)
+        };
+    }
+
+    ctx.fillStyle = `rgb(${bgColor.r}, ${bgColor.g}, ${bgColor.b})`;
     ctx.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
+
+    // 밤 모드일 때 별과 달 그리기
+    if (isNightMode && nightModeTransition > 0.5) {
+        drawStars();
+        drawMoon();
+    }
 
     // 구름
     clouds.forEach(cloud => cloud.draw());
@@ -605,7 +730,7 @@ function draw() {
 
     // 시작 전 메시지
     if (!isRunning && !gameOver) {
-        ctx.fillStyle = '#535353';
+        ctx.fillStyle = isNightMode ? '#fff' : '#535353';
         ctx.font = '12px Arial';
         ctx.textAlign = 'center';
         ctx.fillText('Press SPACE to start', GAME_WIDTH / 2, GAME_HEIGHT / 2);
@@ -624,6 +749,9 @@ function reset() {
     obstacles = [];
     clouds = [];
     trex.reset();
+    isNightMode = false;
+    nightModeTransition = 0;
+    lastNightModeChange = 0;
 }
 
 // 게임 루프
