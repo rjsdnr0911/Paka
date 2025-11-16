@@ -30,6 +30,7 @@ const images = {
     ground: new Image(),
     gameover: new Image(),
     hi: new Image(),
+    button: new Image(),
     numbers: []
 };
 
@@ -57,10 +58,11 @@ images.cloud.src = 'cloud.png';
 images.ground.src = 'ground.png';
 images.gameover.src = 'gameover.png';
 images.hi.src = 'hi.png';
+images.button.src = 'button.png';
 
 // 이미지 로드 완료 체크
 let imagesLoaded = 0;
-let totalImages = 27;
+let totalImages = 28;  // button.png 추가로 28개
 let allImagesLoaded = false;
 
 Object.values(images).forEach(img => {
@@ -455,44 +457,21 @@ class GameOverPanel {
     }
 
     drawRestartButton(x, y) {
-        const size = 36;
-        const centerX = x;
-        const centerY = y;
+        if (!images.button.complete) return;
 
-        ctx.save();
+        // 버튼 이미지 중앙 정렬하여 그리기
+        const buttonWidth = images.button.width;
+        const buttonHeight = images.button.height;
+        const buttonX = x - buttonWidth / 2;
+        const buttonY = y - buttonHeight / 2;
 
-        // 배경 원 (밤/낮 모드에 따라 색상 변경)
-        ctx.fillStyle = isNightMode ? '#202124' : '#f7f7f7';
-        ctx.beginPath();
-        ctx.arc(centerX, centerY, size / 2 - 1, 0, Math.PI * 2);
-        ctx.fill();
+        // 밤 모드일 때 이미지 반전
+        if (isNightMode && nightModeTransition > 0.8) {
+            ctx.filter = 'invert(1)';
+        }
 
-        // 외곽 원
-        ctx.strokeStyle = isNightMode ? '#fff' : '#535353';
-        ctx.lineWidth = 2.5;
-        ctx.beginPath();
-        ctx.arc(centerX, centerY, size / 2, 0, Math.PI * 2);
-        ctx.stroke();
-
-        // 재시작 아이콘 (회전 화살표 그리기)
-        ctx.strokeStyle = isNightMode ? '#fff' : '#535353';
-        ctx.fillStyle = isNightMode ? '#fff' : '#535353';
-        ctx.lineWidth = 2;
-
-        // 원형 화살표
-        ctx.beginPath();
-        ctx.arc(centerX, centerY, 10, -Math.PI / 4, Math.PI * 3 / 2, false);
-        ctx.stroke();
-
-        // 화살표 머리
-        ctx.beginPath();
-        ctx.moveTo(centerX - 10, centerY - 3);
-        ctx.lineTo(centerX - 10, centerY + 3);
-        ctx.lineTo(centerX - 5, centerY);
-        ctx.closePath();
-        ctx.fill();
-
-        ctx.restore();
+        ctx.drawImage(images.button, buttonX, buttonY);
+        ctx.filter = 'none';
     }
 }
 
