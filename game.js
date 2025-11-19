@@ -660,11 +660,6 @@ function update() {
     // 낮/밤 모드 체크
     checkNightMode();
 
-    // 속도 증가
-    if (currentSpeed < MAX_SPEED) {
-        currentSpeed += ACCELERATION;
-    }
-
     // 공룡 업데이트
     trex.update();
 
