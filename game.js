@@ -344,24 +344,18 @@ class Cloud {
 // 지평선 클래스
 class Horizon {
     constructor() {
-        this.x1 = 0;
-        this.x2 = GAME_WIDTH;
+        this.offset = 0;
         this.groundY = 135;  // 땅 위치
         this.groundHeight = 15;  // 땅 이미지가 잘 보이도록 적절한 높이
+        this.tileWidth = GAME_WIDTH;  // 각 타일의 너비
     }
 
     update() {
-        this.x1 -= currentSpeed;
-        this.x2 -= currentSpeed;
+        this.offset -= currentSpeed;
 
-        // 첫 번째 이미지가 완전히 왼쪽으로 벗어나면 오른쪽으로 이동
-        if (this.x1 + GAME_WIDTH <= 0) {
-            this.x1 = this.x2 + GAME_WIDTH;
-        }
-
-        // 두 번째 이미지가 완전히 왼쪽으로 벗어나면 오른쪽으로 이동
-        if (this.x2 + GAME_WIDTH <= 0) {
-            this.x2 = this.x1 + GAME_WIDTH;
+        // offset이 타일 너비를 초과하면 리셋 (끊김 없는 루프)
+        if (this.offset <= -this.tileWidth) {
+            this.offset += this.tileWidth;
         }
     }
 
@@ -373,15 +367,15 @@ class Horizon {
             ctx.filter = 'invert(1)';
         }
 
-        // 두 개의 땅 이미지를 교대로 그려서 끊김 없이 연결
-        ctx.drawImage(images.ground,
-            0, 0, images.ground.width, images.ground.height,  // 소스
-            this.x1, this.groundY, GAME_WIDTH, this.groundHeight  // 목적지
-        );
-        ctx.drawImage(images.ground,
-            0, 0, images.ground.width, images.ground.height,  // 소스
-            this.x2, this.groundY, GAME_WIDTH, this.groundHeight  // 목적지
-        );
+        // 타일링 방식으로 땅 그리기 (끊김 없이 연결)
+        // 화면을 완전히 커버하기 위해 3개의 타일 사용
+        for (let i = 0; i < 3; i++) {
+            const x = this.offset + (i * this.tileWidth);
+            ctx.drawImage(images.ground,
+                0, 0, images.ground.width, images.ground.height,  // 소스
+                x, this.groundY, this.tileWidth, this.groundHeight  // 목적지
+            );
+        }
 
         ctx.filter = 'none';
     }
