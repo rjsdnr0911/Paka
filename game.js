@@ -227,7 +227,7 @@ class Trex {
 
 // 장애물 클래스
 class Obstacle {
-    constructor(type, isRising = false, isOscillating = false) {
+    constructor(type, isRising = false) {
         this.type = type;
         this.remove = false;
         this.animFrame = 0;
@@ -236,8 +236,6 @@ class Obstacle {
         this.alpha = 1;  // 기본 투명도
         this.isRising = isRising;  // 솟구치는 선인장 여부
         this.hasRisen = false;  // 이미 솟구쳤는지 여부
-        this.isOscillating = isOscillating;  // 왕복하는 새 여부
-        this.oscillationTime = 0;  // 왕복 시간 카운터
 
         if (type === 'BIRD') {
             this.images = [images.bird, images.bird2];
@@ -246,9 +244,6 @@ class Obstacle {
             // 원본 게임과 동일한 새의 높이
             const heights = [20, 50, 75];
             this.y = heights[Math.floor(Math.random() * heights.length)];
-            this.initialY = this.y;  // 초기 y 위치 저장 (왕복용)
-            this.oscillationAmplitude = 30;  // 왕복 진폭
-            this.oscillationSpeed = 0.05;  // 왕복 속도
         } else if (type === 'CACTUS_TRANSPARENT') {
             // 투명 선인장 타입
             const cactusImages = [images.cactus, images.cactus2, images.cactus3, images.cactus4, images.cactus5];
@@ -287,12 +282,6 @@ class Obstacle {
             // 공룡 점프 높이만큼 위로 이동 (약 83픽셀)
             this.y = this.initialY - 83;
             this.hasRisen = true;
-        }
-
-        // 왕복하는 새
-        if (this.isOscillating && this.type === 'BIRD') {
-            this.oscillationTime += this.oscillationSpeed;
-            this.y = this.initialY + Math.sin(this.oscillationTime) * this.oscillationAmplitude;
         }
 
         // 새 날개 애니메이션
@@ -555,7 +544,6 @@ function spawnObstacle() {
     const obstacleTypes = ['CACTUS', 'BIRD'];
     let type;
     let isRising = false;
-    let isOscillating = false;
 
     // 현재 점수 계산
     const score = Math.floor(distanceRan * 0.025);
@@ -589,12 +577,7 @@ function spawnObstacle() {
         }
     }
 
-    // 왕복하는 새 확률 체크 (500점 이상)
-    if (type === 'BIRD' && score >= 500 && Math.random() < 0.1) {
-        isOscillating = true;
-    }
-
-    obstacles.push(new Obstacle(type, isRising, isOscillating));
+    obstacles.push(new Obstacle(type, isRising));
 }
 
 // 구름 생성
