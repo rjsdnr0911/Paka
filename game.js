@@ -227,13 +227,15 @@ class Trex {
 
 // 장애물 클래스
 class Obstacle {
-    constructor(type) {
+    constructor(type, isRising = false) {
         this.type = type;
         this.remove = false;
         this.animFrame = 0;
         this.animDelay = 0;
         this.x = GAME_WIDTH + Math.random() * 50;
         this.alpha = 1;  // 기본 투명도
+        this.isRising = isRising;  // 솟구치는 선인장 여부
+        this.hasRisen = false;  // 이미 솟구쳤는지 여부
 
         if (type === 'BIRD') {
             this.images = [images.bird, images.bird2];
@@ -249,6 +251,7 @@ class Obstacle {
             this.width = this.image.width;
             this.height = this.image.height;
             this.y = 145 - this.height;
+            this.initialY = this.y;  // 초기 y 위치 저장
             this.alpha = 0.15;  // 처음에는 매우 희미하게
         } else {
             // 일반 선인장 타입
@@ -258,6 +261,7 @@ class Obstacle {
             this.height = this.image.height;
             // 땅 안쪽으로 더 낮게 배치
             this.y = 145 - this.height;
+            this.initialY = this.y;  // 초기 y 위치 저장
         }
     }
 
@@ -271,6 +275,13 @@ class Obstacle {
         // 투명 선인장이 맵의 절반을 넘어가면 검은색으로 변경
         if (this.type === 'CACTUS_TRANSPARENT' && this.x < GAME_WIDTH / 2) {
             this.alpha = 1;
+        }
+
+        // 솟구치는 선인장이 맵의 절반을 넘어가면 위로 이동
+        if (this.isRising && !this.hasRisen && this.x < GAME_WIDTH / 2) {
+            // 공룡 점프 높이만큼 위로 이동 (약 83픽셀)
+            this.y = this.initialY - 83;
+            this.hasRisen = true;
         }
 
         // 새 날개 애니메이션
@@ -532,10 +543,12 @@ window.addEventListener('orientationchange', () => setTimeout(resizeCanvas, 100)
 function spawnObstacle() {
     const obstacleTypes = ['CACTUS', 'BIRD'];
     let type;
+    let isRising = false;
 
     // 현재 점수 계산
     const score = Math.floor(distanceRan * 0.025);
 
+    // 투명 선인장 확률 체크
     // 100점~200점 사이: 50% 확률로 투명 선인장 생성
     if (score >= 100 && score < 200 && Math.random() < 0.5) {
         type = 'CACTUS_TRANSPARENT';
@@ -552,7 +565,19 @@ function spawnObstacle() {
         type = obstacleTypes[Math.floor(Math.random() * 2)];
     }
 
-    obstacles.push(new Obstacle(type));
+    // 솟구치는 선인장 확률 체크 (투명 선인장과 독립적으로 적용)
+    if (type !== 'BIRD') {  // 선인장 타입일 때만
+        // 100점~200점 사이: 30% 확률로 솟구치는 선인장
+        if (score >= 100 && score < 200 && Math.random() < 0.3) {
+            isRising = true;
+        }
+        // 200점 이상: 8% 확률로 솟구치는 선인장
+        else if (score >= 200 && Math.random() < 0.08) {
+            isRising = true;
+        }
+    }
+
+    obstacles.push(new Obstacle(type, isRising));
 }
 
 // 구름 생성
