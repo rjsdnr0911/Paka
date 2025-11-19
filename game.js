@@ -589,8 +589,8 @@ function spawnObstacle() {
         }
     }
 
-    // 왕복하는 새 확률 체크 (700점 이상)
-    if (type === 'BIRD' && score >= 700 && Math.random() < 0.1) {
+    // 왕복하는 새 확률 체크 (500점 이상)
+    if (type === 'BIRD' && score >= 500 && Math.random() < 0.1) {
         isOscillating = true;
     }
 
