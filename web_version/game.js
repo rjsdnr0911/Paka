@@ -347,15 +347,18 @@ class Horizon {
         this.offset = 0;
         this.groundY = 135;  // 땅 위치
         this.groundHeight = 15;  // 땅 이미지가 잘 보이도록 적절한 높이
-        this.tileWidth = GAME_WIDTH;  // 각 타일의 너비
     }
 
     update() {
+        if (!allImagesLoaded) return;
+
+        // 실제 ground 이미지 너비 사용
+        const tileWidth = images.ground.width;
         this.offset -= currentSpeed;
 
         // offset이 타일 너비를 초과하면 리셋 (끊김 없는 루프)
-        if (this.offset <= -this.tileWidth) {
-            this.offset += this.tileWidth;
+        if (this.offset <= -tileWidth) {
+            this.offset += tileWidth;
         }
     }
 
@@ -368,13 +371,14 @@ class Horizon {
         }
 
         // 타일링 방식으로 땅 그리기 (끊김 없이 연결)
-        // 화면을 완전히 커버하기 위해 3개의 타일 사용
-        for (let i = 0; i < 3; i++) {
-            const x = this.offset + (i * this.tileWidth);
-            ctx.drawImage(images.ground,
-                0, 0, images.ground.width, images.ground.height,  // 소스
-                x, this.groundY, this.tileWidth, this.groundHeight  // 목적지
-            );
+        // ground 이미지의 실제 너비를 사용하여 반복
+        const tileWidth = images.ground.width;
+        const numTiles = Math.ceil(GAME_WIDTH / tileWidth) + 2;  // 화면을 완전히 커버하기 위한 타일 개수
+
+        for (let i = 0; i < numTiles; i++) {
+            const x = this.offset + (i * tileWidth);
+            // 원본 크기 그대로 사용 (비율 유지)
+            ctx.drawImage(images.ground, x, this.groundY);
         }
 
         ctx.filter = 'none';
