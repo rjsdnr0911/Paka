@@ -536,8 +536,12 @@ function spawnObstacle() {
     // 현재 점수 계산
     const score = Math.floor(distanceRan * 0.025);
 
-    // 100점 이상일 때 7% 확률로 투명 선인장 생성
-    if (score >= 100 && Math.random() < 0.07) {
+    // 100점~200점 사이: 50% 확률로 투명 선인장 생성
+    if (score >= 100 && score < 200 && Math.random() < 0.5) {
+        type = 'CACTUS_TRANSPARENT';
+    }
+    // 200점 이상일 때 7% 확률로 투명 선인장 생성
+    else if (score >= 200 && Math.random() < 0.07) {
         type = 'CACTUS_TRANSPARENT';
     }
     // 실제 Chrome 게임처럼 450점부터 익룡 등장
