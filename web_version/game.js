@@ -233,6 +233,7 @@ class Obstacle {
         this.animFrame = 0;
         this.animDelay = 0;
         this.x = GAME_WIDTH + Math.random() * 50;
+        this.alpha = 1;  // 기본 투명도
 
         if (type === 'BIRD') {
             this.images = [images.bird, images.bird2];
@@ -241,8 +242,16 @@ class Obstacle {
             // 원본 게임과 동일한 새의 높이
             const heights = [20, 50, 75];
             this.y = heights[Math.floor(Math.random() * heights.length)];
+        } else if (type === 'CACTUS_TRANSPARENT') {
+            // 투명 선인장 타입
+            const cactusImages = [images.cactus, images.cactus2, images.cactus3, images.cactus4, images.cactus5];
+            this.image = cactusImages[Math.floor(Math.random() * cactusImages.length)];
+            this.width = this.image.width;
+            this.height = this.image.height;
+            this.y = 145 - this.height;
+            this.alpha = 0.15;  // 처음에는 매우 희미하게
         } else {
-            // 선인장 타입
+            // 일반 선인장 타입
             const cactusImages = [images.cactus, images.cactus2, images.cactus3, images.cactus4, images.cactus5];
             this.image = cactusImages[Math.floor(Math.random() * cactusImages.length)];
             this.width = this.image.width;
@@ -257,6 +266,11 @@ class Obstacle {
 
         if (this.x + this.width < 0) {
             this.remove = true;
+        }
+
+        // 투명 선인장이 맵의 절반을 넘어가면 검은색으로 변경
+        if (this.type === 'CACTUS_TRANSPARENT' && this.x < GAME_WIDTH / 2) {
+            this.alpha = 1;
         }
 
         // 새 날개 애니메이션
@@ -277,12 +291,17 @@ class Obstacle {
             ctx.filter = 'invert(1)';
         }
 
+        // 투명도 적용
+        ctx.globalAlpha = this.alpha;
+
         if (this.type === 'BIRD') {
             ctx.drawImage(this.images[this.animFrame], this.x, this.y);
         } else {
             ctx.drawImage(this.image, this.x, this.y);
         }
 
+        // 투명도 및 필터 초기화
+        ctx.globalAlpha = 1;
         ctx.filter = 'none';
     }
 
@@ -514,9 +533,16 @@ function spawnObstacle() {
     const obstacleTypes = ['CACTUS', 'BIRD'];
     let type;
 
+    // 현재 점수 계산
+    const score = Math.floor(distanceRan * 0.025);
+
+    // 100점 이상일 때 7% 확률로 투명 선인장 생성
+    if (score >= 100 && Math.random() < 0.07) {
+        type = 'CACTUS_TRANSPARENT';
+    }
     // 실제 Chrome 게임처럼 450점부터 익룡 등장
     // distanceRan * 0.025 = score이므로, 450점 = distanceRan 18000
-    if (distanceRan < 18000) {
+    else if (distanceRan < 18000) {
         type = 'CACTUS';
     } else {
         type = obstacleTypes[Math.floor(Math.random() * 2)];
