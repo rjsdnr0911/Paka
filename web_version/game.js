@@ -484,6 +484,7 @@ let obstacles = [];
 let clouds = [];
 let obstacleTimer = 0;
 let cloudTimer = 0;
+let nextObstacleGap = 0;
 
 // 모바일 대응
 let scale = 1;
@@ -626,15 +627,16 @@ function update() {
     clouds.forEach(cloud => cloud.update());
     clouds = clouds.filter(cloud => !cloud.remove);
 
-    // 장애물 생성 (원본 게임과 동일한 간격)
+    // 장애물 생성 (랜덤한 간격)
     obstacleTimer++;
-    const minGap = 50;
-    const maxGap = 100;
-    const gapSize = minGap + Math.random() * (maxGap - minGap);
 
-    if (obstacleTimer > gapSize) {
+    if (obstacleTimer > nextObstacleGap) {
         spawnObstacle();
         obstacleTimer = 0;
+        // 다음 장애물까지의 랜덤 간격 설정 (40~140 프레임)
+        const minGap = 40;
+        const maxGap = 140;
+        nextObstacleGap = minGap + Math.random() * (maxGap - minGap);
     }
 
     // 장애물 업데이트 및 충돌 체크
@@ -726,6 +728,7 @@ function reset() {
     frameCount = 0;
     obstacleTimer = 0;
     cloudTimer = 0;
+    nextObstacleGap = 50 + Math.random() * 50; // 첫 장애물 간격 초기화
     obstacles = [];
     clouds = [];
     trex.reset();
