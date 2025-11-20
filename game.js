@@ -186,12 +186,7 @@ class Trex {
             }
         }
 
-        // 밤 모드일 때 이미지 반전
-        if (isNightMode && nightModeTransition > 0.8) {
-            ctx.filter = 'invert(1)';
-        }
         ctx.drawImage(img, this.x, yPos);
-        ctx.filter = 'none';
     }
 
     getHitbox() {
@@ -297,11 +292,6 @@ class Obstacle {
     draw() {
         if (!allImagesLoaded) return;
 
-        // 밤 모드일 때 이미지 반전
-        if (isNightMode && nightModeTransition > 0.8) {
-            ctx.filter = 'invert(1)';
-        }
-
         // 투명도 적용
         ctx.globalAlpha = this.alpha;
 
@@ -311,9 +301,8 @@ class Obstacle {
             ctx.drawImage(this.image, this.x, this.y);
         }
 
-        // 투명도 및 필터 초기화
+        // 투명도 초기화
         ctx.globalAlpha = 1;
-        ctx.filter = 'none';
     }
 
     collidesWith(trex) {
@@ -362,12 +351,7 @@ class Cloud {
     draw() {
         if (!allImagesLoaded) return;
 
-        // 밤 모드일 때 이미지 반전
-        if (isNightMode && nightModeTransition > 0.8) {
-            ctx.filter = 'invert(1)';
-        }
         ctx.drawImage(images.cloud, this.x, this.y);
-        ctx.filter = 'none';
     }
 }
 
@@ -395,11 +379,6 @@ class Horizon {
     draw() {
         if (!allImagesLoaded) return;
 
-        // 밤 모드일 때 이미지 반전
-        if (isNightMode && nightModeTransition > 0.8) {
-            ctx.filter = 'invert(1)';
-        }
-
         // 타일링 방식으로 땅 그리기 (끊김 없이 연결)
         // ground 이미지의 실제 너비를 사용하여 반복
         const tileWidth = images.ground.width;
@@ -410,8 +389,6 @@ class Horizon {
             // 원본 크기 그대로 사용 (비율 유지)
             ctx.drawImage(images.ground, x, this.groundY);
         }
-
-        ctx.filter = 'none';
     }
 }
 
@@ -419,11 +396,6 @@ class Horizon {
 class ScoreBoard {
     draw() {
         if (!allImagesLoaded) return;
-
-        // 밤 모드일 때 이미지 반전
-        if (isNightMode && nightModeTransition > 0.8) {
-            ctx.filter = 'invert(1)';
-        }
 
         const score = Math.floor(distanceRan * 0.025);
         const scoreStr = score.toString().padStart(5, '0');
@@ -455,8 +427,6 @@ class ScoreBoard {
             hiX -= images.hi.width + 5;
             ctx.drawImage(images.hi, hiX, 10);
         }
-
-        ctx.filter = 'none';
     }
 }
 
@@ -465,17 +435,10 @@ class GameOverPanel {
     draw() {
         if (!allImagesLoaded) return;
 
-        // 밤 모드일 때 이미지 반전
-        if (isNightMode && nightModeTransition > 0.8) {
-            ctx.filter = 'invert(1)';
-        }
-
         // GAME OVER 이미지
         const gameOverX = (GAME_WIDTH - images.gameover.width) / 2;
         const gameOverY = 50;
         ctx.drawImage(images.gameover, gameOverX, gameOverY);
-
-        ctx.filter = 'none';
 
         // 재시작 버튼 (아이콘 그리기)
         const buttonX = GAME_WIDTH / 2;
@@ -493,13 +456,7 @@ class GameOverPanel {
         const buttonX = x - buttonWidth / 2;
         const buttonY = y - buttonHeight / 2;
 
-        // 밤 모드일 때 이미지 반전
-        if (isNightMode && nightModeTransition > 0.8) {
-            ctx.filter = 'invert(1)';
-        }
-
         ctx.drawImage(images.button, buttonX, buttonY);
-        ctx.filter = 'none';
     }
 }
 
@@ -738,6 +695,11 @@ function draw() {
         drawMoon();
     }
 
+    // 밤 모드일 때 전체 캔버스에 filter 적용 (성능 최적화)
+    if (isNightMode && nightModeTransition > 0.8) {
+        ctx.filter = 'invert(1)';
+    }
+
     // 구름
     clouds.forEach(cloud => cloud.draw());
 
@@ -757,6 +719,9 @@ function draw() {
     if (gameOver) {
         gameOverPanel.draw();
     }
+
+    // filter 초기화
+    ctx.filter = 'none';
 
     // 시작 전 메시지
     if (!isRunning && !gameOver) {
