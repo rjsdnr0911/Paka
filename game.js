@@ -102,7 +102,7 @@ let currentSpeed = SPEED;
 let distanceRan = 0;
 let frameCount = 0;
 let isNightMode = false;
-let nightModeTransition = 0;
+let nightModeTransition = 1;
 let lastNightModeChange = 0;
 
 // 공룡 클래스
@@ -736,7 +736,7 @@ function reset() {
     clouds = [];
     trex.reset();
     isNightMode = false;
-    nightModeTransition = 0;
+    nightModeTransition = 1;
     lastNightModeChange = 0;
 }
 
