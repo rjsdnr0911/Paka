@@ -91,8 +91,8 @@ images.numbers.forEach(img => {
 const GRAVITY = 0.6;
 const INITIAL_JUMP_VELOCITY = -10;
 const SPEED = 6;
-const MAX_SPEED = 20;
-const ACCELERATION = 0.003;
+const MAX_SPEED = 13;
+const ACCELERATION = 0.001;
 
 // 게임 변수
 let isRunning = false;
@@ -618,6 +618,11 @@ function update() {
 
     // 낮/밤 모드 체크
     checkNightMode();
+
+    // 속도 증가 (프레임 단위 가속)
+    if (currentSpeed < MAX_SPEED) {
+        currentSpeed += ACCELERATION;
+    }
 
     // 공룡 업데이트
     trex.update();
