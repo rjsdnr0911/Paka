@@ -177,7 +177,7 @@ class Trex {
             img = images.dinoDamaged;
         } else if (this.ducking) {
             img = this.animFrame === 0 ? images.dinoDown : images.dinoDown2;
-            yPos = this.groundY + 12;  // 숙인 자세를 위로 올려 땅과 자연스럽게 닿도록 조정
+            yPos = this.groundY + 4;  // 숙인 자세를 위로 올려 땅과 자연스럽게 닿도록 조정
         } else {
             if (this.jumping) {
                 img = images.dino;
@@ -186,12 +186,7 @@ class Trex {
             }
         }
 
-        // 밤 모드일 때 이미지 반전
-        if (isNightMode && nightModeTransition > 0.8) {
-            ctx.filter = 'invert(1)';
-        }
         ctx.drawImage(img, this.x, yPos);
-        ctx.filter = 'none';
     }
 
     getHitbox() {
@@ -227,12 +222,15 @@ class Trex {
 
 // 장애물 클래스
 class Obstacle {
-    constructor(type) {
+    constructor(type, isRising = false) {
         this.type = type;
         this.remove = false;
         this.animFrame = 0;
         this.animDelay = 0;
         this.x = GAME_WIDTH + Math.random() * 50;
+        this.alpha = 1;  // 기본 투명도
+        this.isRising = isRising;  // 솟구치는 선인장 여부
+        this.hasRisen = false;  // 이미 솟구쳤는지 여부
 
         if (type === 'BIRD') {
             this.images = [images.bird, images.bird2];
@@ -241,14 +239,24 @@ class Obstacle {
             // 원본 게임과 동일한 새의 높이
             const heights = [20, 50, 75];
             this.y = heights[Math.floor(Math.random() * heights.length)];
+        } else if (type === 'CACTUS_TRANSPARENT') {
+            // 투명 선인장 타입
+            const cactusImages = [images.cactus, images.cactus2, images.cactus3, images.cactus4, images.cactus5];
+            this.image = cactusImages[Math.floor(Math.random() * cactusImages.length)];
+            this.width = this.image.width;
+            this.height = this.image.height;
+            this.y = 145 - this.height;
+            this.initialY = this.y;  // 초기 y 위치 저장
+            this.alpha = 0.15;  // 처음에는 매우 희미하게
         } else {
-            // 선인장 타입
+            // 일반 선인장 타입
             const cactusImages = [images.cactus, images.cactus2, images.cactus3, images.cactus4, images.cactus5];
             this.image = cactusImages[Math.floor(Math.random() * cactusImages.length)];
             this.width = this.image.width;
             this.height = this.image.height;
             // 땅 안쪽으로 더 낮게 배치
             this.y = 145 - this.height;
+            this.initialY = this.y;  // 초기 y 위치 저장
         }
     }
 
@@ -257,6 +265,18 @@ class Obstacle {
 
         if (this.x + this.width < 0) {
             this.remove = true;
+        }
+
+        // 투명 선인장이 맵의 절반을 넘어가면 검은색으로 변경
+        if (this.type === 'CACTUS_TRANSPARENT' && this.x < GAME_WIDTH / 2) {
+            this.alpha = 1;
+        }
+
+        // 솟구치는 선인장이 맵의 절반을 넘어가면 위로 이동
+        if (this.isRising && !this.hasRisen && this.x < GAME_WIDTH / 2) {
+            // 공룡 점프 높이만큼 위로 이동 (약 83픽셀)
+            this.y = this.initialY - 83;
+            this.hasRisen = true;
         }
 
         // 새 날개 애니메이션
@@ -272,10 +292,8 @@ class Obstacle {
     draw() {
         if (!allImagesLoaded) return;
 
-        // 밤 모드일 때 이미지 반전
-        if (isNightMode && nightModeTransition > 0.8) {
-            ctx.filter = 'invert(1)';
-        }
+        // 투명도 적용
+        ctx.globalAlpha = this.alpha;
 
         if (this.type === 'BIRD') {
             ctx.drawImage(this.images[this.animFrame], this.x, this.y);
@@ -283,7 +301,8 @@ class Obstacle {
             ctx.drawImage(this.image, this.x, this.y);
         }
 
-        ctx.filter = 'none';
+        // 투명도 초기화
+        ctx.globalAlpha = 1;
     }
 
     collidesWith(trex) {
@@ -332,58 +351,44 @@ class Cloud {
     draw() {
         if (!allImagesLoaded) return;
 
-        // 밤 모드일 때 이미지 반전
-        if (isNightMode && nightModeTransition > 0.8) {
-            ctx.filter = 'invert(1)';
-        }
         ctx.drawImage(images.cloud, this.x, this.y);
-        ctx.filter = 'none';
     }
 }
 
 // 지평선 클래스
 class Horizon {
     constructor() {
-        this.x1 = 0;
-        this.x2 = GAME_WIDTH;
+        this.offset = 0;
         this.groundY = 135;  // 땅 위치
         this.groundHeight = 15;  // 땅 이미지가 잘 보이도록 적절한 높이
     }
 
     update() {
-        this.x1 -= currentSpeed;
-        this.x2 -= currentSpeed;
+        if (!allImagesLoaded) return;
 
-        // 첫 번째 이미지가 완전히 왼쪽으로 벗어나면 오른쪽으로 이동
-        if (this.x1 + GAME_WIDTH <= 0) {
-            this.x1 = this.x2 + GAME_WIDTH;
-        }
+        // 실제 ground 이미지 너비 사용
+        const tileWidth = images.ground.width;
+        this.offset -= currentSpeed;
 
-        // 두 번째 이미지가 완전히 왼쪽으로 벗어나면 오른쪽으로 이동
-        if (this.x2 + GAME_WIDTH <= 0) {
-            this.x2 = this.x1 + GAME_WIDTH;
+        // offset이 타일 너비를 초과하면 리셋 (끊김 없는 루프)
+        if (this.offset <= -tileWidth) {
+            this.offset += tileWidth;
         }
     }
 
     draw() {
         if (!allImagesLoaded) return;
 
-        // 밤 모드일 때 이미지 반전
-        if (isNightMode && nightModeTransition > 0.8) {
-            ctx.filter = 'invert(1)';
+        // 타일링 방식으로 땅 그리기 (끊김 없이 연결)
+        // ground 이미지의 실제 너비를 사용하여 반복
+        const tileWidth = images.ground.width;
+        const numTiles = Math.ceil(GAME_WIDTH / tileWidth) + 2;  // 화면을 완전히 커버하기 위한 타일 개수
+
+        for (let i = 0; i < numTiles; i++) {
+            const x = this.offset + (i * tileWidth);
+            // 원본 크기 그대로 사용 (비율 유지)
+            ctx.drawImage(images.ground, x, this.groundY);
         }
-
-        // 두 개의 땅 이미지를 교대로 그려서 끊김 없이 연결
-        ctx.drawImage(images.ground,
-            0, 0, images.ground.width, images.ground.height,  // 소스
-            this.x1, this.groundY, GAME_WIDTH, this.groundHeight  // 목적지
-        );
-        ctx.drawImage(images.ground,
-            0, 0, images.ground.width, images.ground.height,  // 소스
-            this.x2, this.groundY, GAME_WIDTH, this.groundHeight  // 목적지
-        );
-
-        ctx.filter = 'none';
     }
 }
 
@@ -391,11 +396,6 @@ class Horizon {
 class ScoreBoard {
     draw() {
         if (!allImagesLoaded) return;
-
-        // 밤 모드일 때 이미지 반전
-        if (isNightMode && nightModeTransition > 0.8) {
-            ctx.filter = 'invert(1)';
-        }
 
         const score = Math.floor(distanceRan * 0.025);
         const scoreStr = score.toString().padStart(5, '0');
@@ -427,8 +427,6 @@ class ScoreBoard {
             hiX -= images.hi.width + 5;
             ctx.drawImage(images.hi, hiX, 10);
         }
-
-        ctx.filter = 'none';
     }
 }
 
@@ -437,17 +435,10 @@ class GameOverPanel {
     draw() {
         if (!allImagesLoaded) return;
 
-        // 밤 모드일 때 이미지 반전
-        if (isNightMode && nightModeTransition > 0.8) {
-            ctx.filter = 'invert(1)';
-        }
-
         // GAME OVER 이미지
         const gameOverX = (GAME_WIDTH - images.gameover.width) / 2;
         const gameOverY = 50;
         ctx.drawImage(images.gameover, gameOverX, gameOverY);
-
-        ctx.filter = 'none';
 
         // 재시작 버튼 (아이콘 그리기)
         const buttonX = GAME_WIDTH / 2;
@@ -465,13 +456,7 @@ class GameOverPanel {
         const buttonX = x - buttonWidth / 2;
         const buttonY = y - buttonHeight / 2;
 
-        // 밤 모드일 때 이미지 반전
-        if (isNightMode && nightModeTransition > 0.8) {
-            ctx.filter = 'invert(1)';
-        }
-
         ctx.drawImage(images.button, buttonX, buttonY);
-        ctx.filter = 'none';
     }
 }
 
@@ -484,6 +469,7 @@ let obstacles = [];
 let clouds = [];
 let obstacleTimer = 0;
 let cloudTimer = 0;
+let nextObstacleGap = 0;
 
 // 모바일 대응
 let scale = 1;
@@ -514,16 +500,41 @@ window.addEventListener('orientationchange', () => setTimeout(resizeCanvas, 100)
 function spawnObstacle() {
     const obstacleTypes = ['CACTUS', 'BIRD'];
     let type;
+    let isRising = false;
 
+    // 현재 점수 계산
+    const score = Math.floor(distanceRan * 0.025);
+
+    // 투명 선인장 확률 체크
+    // 100점~200점 사이: 50% 확률로 투명 선인장 생성
+    if (score >= 100 && score < 200 && Math.random() < 0.5) {
+        type = 'CACTUS_TRANSPARENT';
+    }
+    // 200점 이상일 때 7% 확률로 투명 선인장 생성
+    else if (score >= 200 && Math.random() < 0.07) {
+        type = 'CACTUS_TRANSPARENT';
+    }
     // 실제 Chrome 게임처럼 450점부터 익룡 등장
     // distanceRan * 0.025 = score이므로, 450점 = distanceRan 18000
-    if (distanceRan < 18000) {
+    else if (distanceRan < 18000) {
         type = 'CACTUS';
     } else {
         type = obstacleTypes[Math.floor(Math.random() * 2)];
     }
 
-    obstacles.push(new Obstacle(type));
+    // 솟구치는 선인장 확률 체크 (투명 선인장과 독립적으로 적용)
+    if (type !== 'BIRD') {  // 선인장 타입일 때만
+        // 100점~200점 사이: 30% 확률로 솟구치는 선인장
+        if (score >= 100 && score < 200 && Math.random() < 0.3) {
+            isRising = true;
+        }
+        // 200점 이상: 8% 확률로 솟구치는 선인장
+        else if (score >= 200 && Math.random() < 0.08) {
+            isRising = true;
+        }
+    }
+
+    obstacles.push(new Obstacle(type, isRising));
 }
 
 // 구름 생성
@@ -606,11 +617,6 @@ function update() {
     // 낮/밤 모드 체크
     checkNightMode();
 
-    // 속도 증가
-    if (currentSpeed < MAX_SPEED) {
-        currentSpeed += ACCELERATION;
-    }
-
     // 공룡 업데이트
     trex.update();
 
@@ -626,15 +632,16 @@ function update() {
     clouds.forEach(cloud => cloud.update());
     clouds = clouds.filter(cloud => !cloud.remove);
 
-    // 장애물 생성 (원본 게임과 동일한 간격)
+    // 장애물 생성 (랜덤한 간격)
     obstacleTimer++;
-    const minGap = 50;
-    const maxGap = 100;
-    const gapSize = minGap + Math.random() * (maxGap - minGap);
 
-    if (obstacleTimer > gapSize) {
+    if (obstacleTimer > nextObstacleGap) {
         spawnObstacle();
         obstacleTimer = 0;
+        // 다음 장애물까지의 랜덤 간격 설정 (40~140 프레임)
+        const minGap = 40;
+        const maxGap = 140;
+        nextObstacleGap = minGap + Math.random() * (maxGap - minGap);
     }
 
     // 장애물 업데이트 및 충돌 체크
@@ -688,6 +695,11 @@ function draw() {
         drawMoon();
     }
 
+    // 밤 모드일 때 전체 캔버스에 filter 적용 (성능 최적화)
+    if (isNightMode && nightModeTransition > 0.8) {
+        ctx.filter = 'invert(1)';
+    }
+
     // 구름
     clouds.forEach(cloud => cloud.draw());
 
@@ -708,6 +720,9 @@ function draw() {
         gameOverPanel.draw();
     }
 
+    // filter 초기화
+    ctx.filter = 'none';
+
     // 시작 전 메시지
     if (!isRunning && !gameOver) {
         ctx.fillStyle = isNightMode ? '#fff' : '#535353';
@@ -726,6 +741,7 @@ function reset() {
     frameCount = 0;
     obstacleTimer = 0;
     cloudTimer = 0;
+    nextObstacleGap = 50 + Math.random() * 50; // 첫 장애물 간격 초기화
     obstacles = [];
     clouds = [];
     trex.reset();
