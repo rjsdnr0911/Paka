@@ -91,8 +91,8 @@ images.numbers.forEach(img => {
 const GRAVITY = 0.6;
 const INITIAL_JUMP_VELOCITY = -10;
 const SPEED = 6;
-const MAX_SPEED = 13;
-const ACCELERATION = 0.001;
+const MAX_SPEED = 15;
+const ACCELERATION = 0.002;
 
 // 게임 변수
 let isRunning = false;
@@ -125,7 +125,9 @@ class Trex {
         // 애니메이션 프레임
         if (isRunning && !this.crashed) {
             this.animFrameDelay++;
-            if (this.animFrameDelay > 3) {
+            // 게임 속도에 따라 애니메이션 속도 조절 (속도가 빠를수록 딜레이를 낮춤)
+            const dynamicDelay = Math.max(1, Math.floor(20 / currentSpeed));
+            if (this.animFrameDelay > dynamicDelay) {
                 this.animFrame = this.animFrame === 0 ? 1 : 0;
                 this.animFrameDelay = 0;
             }
@@ -626,10 +628,14 @@ function update() {
     clouds.forEach(cloud => cloud.update());
     clouds = clouds.filter(cloud => !cloud.remove);
 
-    // 장애물 생성 (원본 게임과 동일한 간격)
+    // 장애물 생성 (속도에 비례하여 간격을 조절하여 거리 밸런스 유지)
     obstacleTimer++;
-    const minGap = 50;
-    const maxGap = 100;
+    const baseMinGap = 50;
+    const baseMaxGap = 100;
+    // 속도가 빨라지면 프레임당 이동 거리가 늘어나므로, 프레임 기반의 Gap을 속도에 맞춰 보정
+    const scaleFactor = SPEED / currentSpeed;
+    const minGap = baseMinGap * scaleFactor;
+    const maxGap = baseMaxGap * scaleFactor;
     const gapSize = minGap + Math.random() * (maxGap - minGap);
 
     if (obstacleTimer > gapSize) {
