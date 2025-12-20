@@ -31,6 +31,8 @@ const images = {
     gameover: new Image(),
     hi: new Image(),
     button: new Image(),
+    boo: new Image(),
+    boo2: new Image(),
     numbers: []
 };
 
@@ -59,10 +61,12 @@ images.ground.src = 'ground.png';
 images.gameover.src = 'gameover.png';
 images.hi.src = 'hi.png';
 images.button.src = 'button.png';
+images.boo.src = 'boo.png';
+images.boo2.src = 'boo2.png';
 
 // 이미지 로드 완료 체크
 let imagesLoaded = 0;
-let totalImages = 28;  // button.png 추가로 28개
+let totalImages = 30;  // boo.png, boo2.png 추가로 30개
 let allImagesLoaded = false;
 
 Object.values(images).forEach(img => {
@@ -279,6 +283,8 @@ class Obstacle {
             // 공룡 점프 높이만큼 위로 이동 (약 83픽셀)
             this.y = this.initialY - 83;
             this.hasRisen = true;
+            // 폭발 효과 추가
+            explosions.push(new Explosion(this.x, this.y + 40));
         }
 
         // 새 날개 애니메이션
@@ -332,6 +338,38 @@ class Obstacle {
             trexBox.y + trexBox.height < obsBox.y ||
             trexBox.y > obsBox.y + obsBox.height
         );
+    }
+}
+
+// 폭발 클래스
+class Explosion {
+    constructor(x, y) {
+        this.x = x;
+        this.y = y;
+        this.width = 60;
+        this.height = 60;
+        this.frame = 0;
+        this.maxFrames = 30; // 0.5초 (60fps 기준 30프레임)
+        this.remove = false;
+    }
+
+    update() {
+        this.frame++;
+        if (this.frame >= this.maxFrames) {
+            this.remove = true;
+        }
+        // 폭발도 배경과 함께 이동
+        this.x -= currentSpeed;
+    }
+
+    draw() {
+        if (!allImagesLoaded) return;
+
+        // boo와 boo2를 번갈아 가며 출력하여 애니메이션 효과
+        const img = Math.floor(this.frame / 5) % 2 === 0 ? images.boo : images.boo2;
+
+        // 중앙 정렬하여 그리기
+        ctx.drawImage(img, this.x - this.width / 4, this.y - this.height / 4, this.width, this.height);
     }
 }
 
@@ -469,6 +507,7 @@ const scoreBoard = new ScoreBoard();
 const gameOverPanel = new GameOverPanel();
 let obstacles = [];
 let clouds = [];
+let explosions = [];
 let obstacleTimer = 0;
 let cloudTimer = 0;
 let nextObstacleGap = 0;
@@ -675,6 +714,10 @@ function update() {
         }
     });
     obstacles = obstacles.filter(obstacle => !obstacle.remove);
+
+    // 폭발 업데이트
+    explosions.forEach(exp => exp.update());
+    explosions = explosions.filter(exp => !exp.remove);
 }
 
 // 게임 그리기
@@ -701,6 +744,9 @@ function draw() {
 
     // 공룡
     trex.draw();
+
+    // 폭발 (밤 모드 반전 효과 전후 위치 고려 - 반전 효과 전에 그려야 밤 모드에서 색 반전이 일어남)
+    explosions.forEach(exp => exp.draw());
 
     // 점수
     scoreBoard.draw();
@@ -746,6 +792,7 @@ function reset() {
     nextObstacleGap = 50 + Math.random() * 50; // 첫 장애물 간격 초기화
     obstacles = [];
     clouds = [];
+    explosions = [];
     trex.reset();
     isNightMode = false;
     nightModeTransition = 1;
