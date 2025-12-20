@@ -578,14 +578,14 @@ function drawMoon() {
     const moonY = 30;
     const moonRadius = 15;
 
-    // 달
-    ctx.fillStyle = '#fff';
+    // 달 (반전될 것이므로 어두운 색으로 그려서 밝게 보이게 함)
+    ctx.fillStyle = '#535353';
     ctx.beginPath();
     ctx.arc(moonX, moonY, moonRadius, 0, Math.PI * 2);
     ctx.fill();
 
     // 달 크레이터
-    ctx.fillStyle = 'rgba(200, 200, 200, 0.3)';
+    ctx.fillStyle = 'rgba(100, 100, 100, 0.3)';
     ctx.beginPath();
     ctx.arc(moonX - 4, moonY - 3, 3, 0, Math.PI * 2);
     ctx.fill();
@@ -596,7 +596,7 @@ function drawMoon() {
 
 // 별 그리기
 function drawStars() {
-    ctx.fillStyle = '#fff';
+    ctx.fillStyle = '#535353';
     const stars = [
         [50, 20], [120, 35], [200, 15], [280, 40], [350, 25],
         [430, 30], [500, 18], [550, 38]
@@ -679,28 +679,8 @@ function update() {
 
 // 게임 그리기
 function draw() {
-    // 배경 색상 (낮/밤 전환)
     const dayColor = { r: 247, g: 247, b: 247 };
-    const nightColor = { r: 32, g: 33, b: 36 };
-
-    let bgColor;
-    if (isNightMode) {
-        const t = nightModeTransition;
-        bgColor = {
-            r: Math.floor(dayColor.r + (nightColor.r - dayColor.r) * t),
-            g: Math.floor(dayColor.g + (nightColor.g - dayColor.g) * t),
-            b: Math.floor(dayColor.b + (nightColor.b - dayColor.b) * t)
-        };
-    } else {
-        const t = nightModeTransition;
-        bgColor = {
-            r: Math.floor(nightColor.r + (dayColor.r - nightColor.r) * t),
-            g: Math.floor(nightColor.g + (dayColor.g - nightColor.g) * t),
-            b: Math.floor(nightColor.b + (dayColor.b - nightColor.b) * t)
-        };
-    }
-
-    ctx.fillStyle = `rgb(${bgColor.r}, ${bgColor.g}, ${bgColor.b})`;
+    ctx.fillStyle = `rgb(${dayColor.r}, ${dayColor.g}, ${dayColor.b})`;
     ctx.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
 
     // 밤 모드일 때 별과 달 그리기
@@ -709,10 +689,6 @@ function draw() {
         drawMoon();
     }
 
-    // 밤 모드일 때 전체 캔버스에 filter 적용 (성능 최적화)
-    if (isNightMode && nightModeTransition > 0.8) {
-        ctx.filter = 'invert(1)';
-    }
 
     // 구름
     clouds.forEach(cloud => cloud.draw());
@@ -734,7 +710,19 @@ function draw() {
         gameOverPanel.draw();
     }
 
-    // filter 초기화
+    // 밤 모드 전환 (성능 최적화를 위해 difference 합성 연산 사용)
+    // 모든 요소를 그린 후 마지막에 한 번에 반전시켜 렉을 방지하고 효과를 극대화함
+    const invertAlpha = isNightMode ? nightModeTransition : (1 - nightModeTransition);
+    if (invertAlpha > 0) {
+        ctx.save();
+        ctx.globalCompositeOperation = 'difference';
+        ctx.globalAlpha = invertAlpha;
+        ctx.fillStyle = '#fff';
+        ctx.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
+        ctx.restore();
+    }
+
+    // filter 초기화 (혹시 다른 곳에서 사용될 경우를 위해)
     ctx.filter = 'none';
 
     // 시작 전 메시지
