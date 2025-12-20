@@ -91,8 +91,8 @@ images.numbers.forEach(img => {
 const GRAVITY = 0.6;
 const INITIAL_JUMP_VELOCITY = -10;
 const SPEED = 6;
-const MAX_SPEED = 15;
-const ACCELERATION = 0.002;
+const MAX_SPEED = 20;
+const ACCELERATION = 0.003;
 
 // 게임 변수
 let isRunning = false;
