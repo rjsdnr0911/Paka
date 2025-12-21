@@ -390,10 +390,29 @@ class Meteor {
     constructor() {
         this.width = 50; // METEOR FEATURE: Increased size
         this.height = 50; // METEOR FEATURE: Increased size
-        // METEOR FEATURE: Restrict spawn x to right edge
-        this.x = GAME_WIDTH + Math.random() * 50;
-        this.y = -this.height;
+
+        // METEOR FEATURE: Landing position based spawn logic
         this.speed = 4 + Math.random() * 2;
+
+        // meteor impact position constraint
+        // Calculate spawn position such that it lands at or in front of Trex
+        const groundY = 135; // Target ground Y
+        const spawnY = -this.height;
+
+        // Movement components for 45 deg (vx = vy)
+        // In 45 deg motion diagonal, vx = vy = speed / sqrt(2)
+        const vx = this.speed / Math.sqrt(2);
+        const vy = this.speed / Math.sqrt(2);
+        const t = (groundY - spawnY) / vy;
+
+        // We want impactX = spawnX - (vx * t) >= trex.x
+        // So spawnX >= trex.x + (vx * t)
+        const minSpawnX = trex.x + (vx * t);
+
+        // Restrict spawn x to right edge (GAME_WIDTH) OR minSpawnX if larger
+        this.x = Math.max(GAME_WIDTH, minSpawnX) + Math.random() * 50;
+        this.y = spawnY;
+
         this.remove = false;
         this.animFrame = 0; // METEOR FEATURE: Animation frame
         this.animDelay = 0; // METEOR FEATURE: Animation delay
