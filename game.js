@@ -431,9 +431,9 @@ class Meteor {
 
     getHitbox() {
         // METEOR FEATURE: Adjusted hitbox for larger size
-        // adjust meteor hitbox to visible size
-        const hbWidth = this.width * 0.7;
-        const hbHeight = this.height * 0.7;
+        // inscribed hitbox for meteor (intentionally smaller than sprite)
+        const hbWidth = this.width * 0.35;
+        const hbHeight = this.height * 0.35;
         return {
             x: this.x + (this.width - hbWidth) / 2,
             y: this.y + (this.height - hbHeight) / 2,
