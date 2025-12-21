@@ -65,10 +65,12 @@ images.boo.src = 'boo.png';
 images.boo2.src = 'boo2.png';
 images.meteor = new Image(); // METEOR FEATURE
 images.meteor.src = 'meteor.png'; // METEOR FEATURE
+images.meteor2 = new Image(); // METEOR FEATURE
+images.meteor2.src = 'meteor2.png'; // METEOR FEATURE
 
 // 이미지 로드 완료 체크
 let imagesLoaded = 0;
-let totalImages = 31;  // boo.png, boo2.png, meteor.png 추가로 31개 // METEOR FEATURE
+let totalImages = 32;  // boo.png, boo2.png, meteor.png, meteor2.png 추가로 32개 // METEOR FEATURE
 let allImagesLoaded = false;
 
 Object.values(images).forEach(img => {
@@ -386,18 +388,28 @@ class Explosion {
 // METEOR FEATURE
 class Meteor {
     constructor() {
-        this.width = 40;
-        this.height = 40;
-        this.x = Math.random() * (GAME_WIDTH + 100);
+        this.width = 50; // METEOR FEATURE: Increased size
+        this.height = 50; // METEOR FEATURE: Increased size
+        // METEOR FEATURE: Restrict spawn x to right edge
+        this.x = GAME_WIDTH + Math.random() * 50;
         this.y = -this.height;
         this.speed = 4 + Math.random() * 2;
         this.remove = false;
+        this.animFrame = 0; // METEOR FEATURE: Animation frame
+        this.animDelay = 0; // METEOR FEATURE: Animation delay
     }
 
     update() {
         // 45도 대각선 아래로 이동 (오른쪽에서 왼쪽으로)
         this.x -= this.speed;
         this.y += this.speed;
+
+        // METEOR FEATURE: Animation update
+        this.animDelay++;
+        if (this.animDelay > 10) { // 10프레임마다 이미지 교체
+            this.animFrame = this.animFrame === 0 ? 1 : 0;
+            this.animDelay = 0;
+        }
 
         // 화면 밖으로 완전히 나가면 제거
         if (this.y > GAME_HEIGHT || this.x < -this.width) {
@@ -406,16 +418,18 @@ class Meteor {
     }
 
     draw() {
-        ctx.drawImage(images.meteor, this.x, this.y, this.width, this.height);
+        // METEOR FEATURE: Animation draw
+        const img = this.animFrame === 0 ? images.meteor : images.meteor2;
+        ctx.drawImage(img, this.x, this.y, this.width, this.height);
     }
 
     getHitbox() {
-        // 충돌 판정을 약간 작게 설정
+        // METEOR FEATURE: Adjusted hitbox for larger size
         return {
-            x: this.x + 5,
-            y: this.y + 5,
-            width: this.width - 10,
-            height: this.height - 10
+            x: this.x + 8,
+            y: this.y + 8,
+            width: this.width - 16,
+            height: this.height - 16
         };
     }
 
