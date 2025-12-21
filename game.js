@@ -283,7 +283,7 @@ class Obstacle {
             this.y = this.initialY - 83; // 솟구침 상태 유지
             if (!this.hasRisen) {
                 // 폭발 효과 추가 (최초 1회만 실행)
-                explosions.push(new Explosion(this.x, this.y, this.width, this.height));
+                explosions.push(new Explosion(this.x, this.initialY + this.height, this.width, this.height)); // FIX: ground explosion position
                 this.hasRisen = true;
             }
         }
@@ -374,10 +374,9 @@ class Explosion {
         const drawWidth = this.width * scale;
         const drawHeight = this.height * scale;
 
-        // [폭발 위치/크기 연출] 중앙 기준 확대를 위한 좌표 계산 (x는 선인장 중앙, y는 공룡의 y좌표와 비슷한 지면 부근)
+        // [폭발 위치/크기 연출] 중앙 기준 확대를 위한 좌표 계산 (x는 선인장 중앙, y는 지면(전달받은 y) 기준)
         const drawX = this.x - (drawWidth - this.width) / 2;
-        const centerY = this.y + 83 + this.height / 2; // 지면 부근으로 내림 (선인장의 원래 중앙 위치)
-        const drawY = centerY - drawHeight / 2;
+        const drawY = this.y - drawHeight / 2; // FIX: ground explosion position
 
         ctx.drawImage(img, drawX, drawY, drawWidth, drawHeight);
     }
