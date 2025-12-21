@@ -431,12 +431,14 @@ class Meteor {
 
     getHitbox() {
         // METEOR FEATURE: Adjusted hitbox for larger size
-        // meteor size increased
+        // adjust meteor hitbox to visible size
+        const hbWidth = this.width * 0.7;
+        const hbHeight = this.height * 0.7;
         return {
-            x: this.x + 30,
-            y: this.y + 30,
-            width: this.width - 60,
-            height: this.height - 60
+            x: this.x + (this.width - hbWidth) / 2,
+            y: this.y + (this.height - hbHeight) / 2,
+            width: hbWidth,
+            height: hbHeight
         };
     }
 
