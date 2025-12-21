@@ -63,10 +63,12 @@ images.hi.src = 'hi.png';
 images.button.src = 'button.png';
 images.boo.src = 'boo.png';
 images.boo2.src = 'boo2.png';
+images.meteor = new Image(); // METEOR FEATURE
+images.meteor.src = 'meteor.png'; // METEOR FEATURE
 
 // 이미지 로드 완료 체크
 let imagesLoaded = 0;
-let totalImages = 30;  // boo.png, boo2.png 추가로 30개
+let totalImages = 31;  // boo.png, boo2.png, meteor.png 추가로 31개 // METEOR FEATURE
 let allImagesLoaded = false;
 
 Object.values(images).forEach(img => {
@@ -369,7 +371,6 @@ class Explosion {
         // 0.5초 동안 boo에서 boo2로 딱 한 번만 전환 (15프레임 기준)
         const img = this.frame < 15 ? images.boo : images.boo2;
 
-
         // [폭발 위치/크기 연출] 중앙 기준 확대를 위한 좌표 계산 (x는 선인장 중앙, y는 지면(전달받은 y) 기준)
         const baseScale = 3.5 + (this.frame / this.maxFrames) * 0.5;
         const drawWidth = this.width * baseScale; // FIX: keep explosion aspect ratio
@@ -381,6 +382,56 @@ class Explosion {
         ctx.drawImage(img, drawX, drawY, drawWidth, drawHeight);
     }
 }
+
+// METEOR FEATURE
+class Meteor {
+    constructor() {
+        this.width = 40;
+        this.height = 40;
+        this.x = Math.random() * (GAME_WIDTH + 100);
+        this.y = -this.height;
+        this.speed = 4 + Math.random() * 2;
+        this.remove = false;
+    }
+
+    update() {
+        // 45도 대각선 아래로 이동 (오른쪽에서 왼쪽으로)
+        this.x -= this.speed;
+        this.y += this.speed;
+
+        // 화면 밖으로 완전히 나가면 제거
+        if (this.y > GAME_HEIGHT || this.x < -this.width) {
+            this.remove = true;
+        }
+    }
+
+    draw() {
+        ctx.drawImage(images.meteor, this.x, this.y, this.width, this.height);
+    }
+
+    getHitbox() {
+        // 충돌 판정을 약간 작게 설정
+        return {
+            x: this.x + 5,
+            y: this.y + 5,
+            width: this.width - 10,
+            height: this.height - 10
+        };
+    }
+
+    collidesWith(trex) {
+        const trexHitbox = trex.getHitbox();
+        const meteorHitbox = this.getHitbox();
+
+        return (
+            trexHitbox.x < meteorHitbox.x + meteorHitbox.width &&
+            trexHitbox.x + trexHitbox.width > meteorHitbox.x &&
+            trexHitbox.y < meteorHitbox.y + meteorHitbox.height &&
+            trexHitbox.y + trexHitbox.height > meteorHitbox.y
+        );
+    }
+}
+// METEOR FEATURE
 
 // 구름 클래스
 class Cloud {
@@ -517,6 +568,7 @@ const gameOverPanel = new GameOverPanel();
 let obstacles = [];
 let clouds = [];
 let explosions = [];
+let meteors = []; // METEOR FEATURE
 let obstacleTimer = 0;
 let cloudTimer = 0;
 let nextObstacleGap = 0;
@@ -667,6 +719,19 @@ function update() {
     clouds.forEach(cloud => cloud.update());
     clouds = clouds.filter(cloud => !cloud.remove);
 
+    // 메테오 업데이트 및 충돌 체크 // METEOR FEATURE
+    if (Math.random() < 0.01) { // 약 1% 확률로 생성 // METEOR FEATURE
+        meteors.push(new Meteor()); // METEOR FEATURE
+    } // METEOR FEATURE
+    meteors.forEach(meteor => { // METEOR FEATURE
+        meteor.update(); // METEOR FEATURE
+        if (meteor.collidesWith(trex)) { // METEOR FEATURE
+            gameOver = true; // METEOR FEATURE
+            trex.crashed = true; // METEOR FEATURE
+        } // METEOR FEATURE
+    }); // METEOR FEATURE
+    meteors = meteors.filter(meteor => !meteor.remove); // METEOR FEATURE
+
     // 장애물 생성 (속도에 비례하여 간격을 조절하여 거리 밸런스 유지)
     obstacleTimer++;
     const baseMinGap = 50;
@@ -725,6 +790,9 @@ function draw() {
     // 구름
     clouds.forEach(cloud => cloud.draw());
 
+    // 메테오 그리기 // METEOR FEATURE
+    meteors.forEach(meteor => meteor.draw()); // METEOR FEATURE
+
     // 지평선
     horizon.draw();
 
@@ -781,6 +849,7 @@ function reset() {
     nextObstacleGap = 50 + Math.random() * 50; // 첫 장애물 간격 초기화
     obstacles = [];
     clouds = [];
+    meteors = []; // METEOR FEATURE
     explosions = [];
     trex.reset();
     isNightMode = false;
