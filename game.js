@@ -388,8 +388,8 @@ class Explosion {
 // METEOR FEATURE
 class Meteor {
     constructor() {
-        this.width = 80; // meteor size increased
-        this.height = 80; // meteor size increased
+        this.width = 180; // meteor size increased
+        this.height = 180; // meteor size increased
 
         // METEOR FEATURE: Animation setup
         this.speed = 4 + Math.random() * 2;
@@ -433,10 +433,10 @@ class Meteor {
         // METEOR FEATURE: Adjusted hitbox for larger size
         // meteor size increased
         return {
-            x: this.x + 12,
-            y: this.y + 12,
-            width: this.width - 24,
-            height: this.height - 24
+            x: this.x + 30,
+            y: this.y + 30,
+            width: this.width - 60,
+            height: this.height - 60
         };
     }
 
