@@ -369,8 +369,8 @@ class Explosion {
         // 0.5초 동안 boo에서 boo2로 딱 한 번만 전환 (15프레임 기준)
         const img = this.frame < 15 ? images.boo : images.boo2;
 
-        // 시간에 따른 크기 변화 (0.6배에서 1.4배까지 확대)
-        const scale = 0.6 + (this.frame / this.maxFrames) * 0.8;
+        // [폭발 크기 조정] 시간에 따른 크기 변화 (1.8배에서 2.2배까지 확대)
+        const scale = 1.8 + (this.frame / this.maxFrames) * 0.4;
         const drawWidth = this.width * scale;
         const drawHeight = this.height * scale;
 
