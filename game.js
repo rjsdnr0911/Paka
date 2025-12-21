@@ -278,13 +278,14 @@ class Obstacle {
             this.alpha = 1;
         }
 
-        // 솟구치는 선인장이 맵의 절반을 넘어가면 위로 이동
-        if (this.isRising && !this.hasRisen && this.x < GAME_WIDTH / 2) {
-            // 공룡 점프 높이만큼 위로 이동 (약 83픽셀)
-            this.y = this.initialY - 83;
-            this.hasRisen = true;
-            // 폭발 효과 추가 (선인장 크기에 맞춤)
-            explosions.push(new Explosion(this.x, this.y, this.width, this.height));
+        // [수정] 솟구침 동작과 폭발 로직 분리 (장애물당 폭발 1회 제한)
+        if (this.isRising && this.x < GAME_WIDTH / 2) {
+            this.y = this.initialY - 83; // 솟구침 상태 유지
+            if (!this.hasRisen) {
+                // 폭발 효과 추가 (최초 1회만 실행)
+                explosions.push(new Explosion(this.x, this.y, this.width, this.height));
+                this.hasRisen = true;
+            }
         }
 
         // 새 날개 애니메이션
@@ -545,7 +546,7 @@ resizeCanvas();
 window.addEventListener('resize', resizeCanvas);
 window.addEventListener('orientationchange', () => setTimeout(resizeCanvas, 100));
 
-// 장애물 생성
+// [수정] 장애물 생성: 생성 시점의 점수(score)로 모든 속성 결정
 function spawnObstacle() {
     const score = Math.floor(distanceRan * 0.025);
 
@@ -557,7 +558,7 @@ function spawnObstacle() {
         type = 'CACTUS_TRANSPARENT';
     }
 
-    // 선인장인 경우, 100점 이후부터 20% 확률로 솟구치는 특성 부여
+    // [수정] 솟구침 여부는 생성 시점에 고정 (100점 이후 20% 확률 유지)
     let isRising = false;
     if (type === 'CACTUS' && score > 100 && Math.random() < 0.2) {
         isRising = true;
