@@ -374,10 +374,10 @@ class Explosion {
         const drawWidth = this.width * scale;
         const drawHeight = this.height * scale;
 
-        // [폭발 위치/크기 연출] 중앙 기준 확대를 위한 좌표 계산 (x는 선인장 중앙, y는 지면(선인장 하단) 기준)
+        // [폭발 위치/크기 연출] 중앙 기준 확대를 위한 좌표 계산 (x는 선인장 중앙, y는 선인장의 현재 중앙 기준)
         const drawX = this.x - (drawWidth - this.width) / 2;
-        const groundY = this.y + 83 + this.height; // 선인장이 83만큼 솟구쳤으므로 지면은 y + 83 + height
-        const drawY = groundY - drawHeight / 2;
+        const centerY = this.y + this.height / 2;
+        const drawY = centerY - drawHeight / 2;
 
         ctx.drawImage(img, drawX, drawY, drawWidth, drawHeight);
     }
