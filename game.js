@@ -368,8 +368,16 @@ class Explosion {
         // 0.5초 동안 boo에서 boo2로 딱 한 번만 전환 (15프레임 기준)
         const img = this.frame < 15 ? images.boo : images.boo2;
 
-        // 선인장 위치와 크기에 맞춰 정렬하여 그리기
-        ctx.drawImage(img, this.x, this.y, this.width, this.height);
+        // 시간에 따른 크기 변화 (0.6배에서 1.4배까지 확대)
+        const scale = 0.6 + (this.frame / this.maxFrames) * 0.8;
+        const drawWidth = this.width * scale;
+        const drawHeight = this.height * scale;
+
+        // 중앙 기준 확대를 위한 좌표 계산
+        const drawX = this.x - (drawWidth - this.width) / 2;
+        const drawY = this.y - (drawHeight - this.height) / 2;
+
+        ctx.drawImage(img, drawX, drawY, drawWidth, drawHeight);
     }
 }
 
@@ -539,7 +547,23 @@ window.addEventListener('orientationchange', () => setTimeout(resizeCanvas, 100)
 
 // 장애물 생성
 function spawnObstacle() {
-    obstacles.push(new Obstacle('CACTUS', true)); // Always testing rising cactus
+    const score = Math.floor(distanceRan * 0.025);
+
+    // 점수에 따라 장애물 타입 결정
+    let type = 'CACTUS';
+    if (score > 400 && Math.random() < 0.3) {
+        type = 'BIRD';
+    } else if (score > 200 && Math.random() < 0.15) {
+        type = 'CACTUS_TRANSPARENT';
+    }
+
+    // 선인장인 경우, 100점 이후부터 20% 확률로 솟구치는 특성 부여
+    let isRising = false;
+    if (type === 'CACTUS' && score > 100 && Math.random() < 0.2) {
+        isRising = true;
+    }
+
+    obstacles.push(new Obstacle(type, isRising));
 }
 
 // 구름 생성
