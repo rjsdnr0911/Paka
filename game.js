@@ -283,8 +283,8 @@ class Obstacle {
             // 공룡 점프 높이만큼 위로 이동 (약 83픽셀)
             this.y = this.initialY - 83;
             this.hasRisen = true;
-            // 폭발 효과 추가
-            explosions.push(new Explosion(this.x, this.y + 40));
+            // 폭발 효과 추가 (선인장 크기에 맞춤)
+            explosions.push(new Explosion(this.x, this.y, this.width, this.height));
         }
 
         // 새 날개 애니메이션
@@ -343,11 +343,11 @@ class Obstacle {
 
 // 폭발 클래스
 class Explosion {
-    constructor(x, y) {
+    constructor(x, y, width, height) {
         this.x = x;
         this.y = y;
-        this.width = 60;
-        this.height = 60;
+        this.width = width;
+        this.height = height;
         this.frame = 0;
         this.maxFrames = 30; // 0.5초 (60fps 기준 30프레임)
         this.remove = false;
@@ -365,11 +365,11 @@ class Explosion {
     draw() {
         if (!allImagesLoaded) return;
 
-        // boo와 boo2를 번갈아 가며 출력하여 애니메이션 효과
-        const img = Math.floor(this.frame / 5) % 2 === 0 ? images.boo : images.boo2;
+        // 0.5초 동안 boo에서 boo2로 딱 한 번만 전환 (15프레임 기준)
+        const img = this.frame < 15 ? images.boo : images.boo2;
 
-        // 중앙 정렬하여 그리기
-        ctx.drawImage(img, this.x - this.width / 4, this.y - this.height / 4, this.width, this.height);
+        // 선인장 위치와 크기에 맞춰 정렬하여 그리기
+        ctx.drawImage(img, this.x, this.y, this.width, this.height);
     }
 }
 
@@ -539,43 +539,7 @@ window.addEventListener('orientationchange', () => setTimeout(resizeCanvas, 100)
 
 // 장애물 생성
 function spawnObstacle() {
-    const obstacleTypes = ['CACTUS', 'BIRD'];
-    let type;
-    let isRising = false;
-
-    // 현재 점수 계산
-    const score = Math.floor(distanceRan * 0.025);
-
-    // 투명 선인장 확률 체크
-    // 100점~200점 사이: 50% 확률로 투명 선인장 생성
-    if (score >= 100 && score < 200 && Math.random() < 0.5) {
-        type = 'CACTUS_TRANSPARENT';
-    }
-    // 200점 이상일 때 7% 확률로 투명 선인장 생성
-    else if (score >= 200 && Math.random() < 0.07) {
-        type = 'CACTUS_TRANSPARENT';
-    }
-    // 실제 Chrome 게임처럼 450점부터 익룡 등장
-    // distanceRan * 0.025 = score이므로, 450점 = distanceRan 18000
-    else if (distanceRan < 18000) {
-        type = 'CACTUS';
-    } else {
-        type = obstacleTypes[Math.floor(Math.random() * 2)];
-    }
-
-    // 솟구치는 선인장 확률 체크 (투명 선인장과 독립적으로 적용)
-    if (type !== 'BIRD') {  // 선인장 타입일 때만
-        // 100점~200점 사이: 30% 확률로 솟구치는 선인장
-        if (score >= 100 && score < 200 && Math.random() < 0.3) {
-            isRising = true;
-        }
-        // 200점 이상: 8% 확률로 솟구치는 선인장
-        else if (score >= 200 && Math.random() < 0.08) {
-            isRising = true;
-        }
-    }
-
-    obstacles.push(new Obstacle(type, isRising));
+    obstacles.push(new Obstacle('CACTUS', true)); // Always testing rising cactus
 }
 
 // 구름 생성
