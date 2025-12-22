@@ -67,10 +67,14 @@ images.meteor = new Image(); // METEOR FEATURE
 images.meteor.src = 'meteor.png'; // METEOR FEATURE
 images.meteor2 = new Image(); // METEOR FEATURE
 images.meteor2.src = 'meteor2.png'; // METEOR FEATURE
+images.heart = new Image(); // HEALTH FEATURE
+images.heart.src = 'heart.png'; // HEALTH FEATURE
+images.heartEmpty = new Image(); // HEALTH FEATURE
+images.heartEmpty.src = 'heart2.png'; // HEALTH FEATURE
 
 // 이미지 로드 완료 체크
 let imagesLoaded = 0;
-let totalImages = 32;  // boo.png, boo2.png, meteor.png, meteor2.png 추가로 32개 // METEOR FEATURE
+let totalImages = 34;  // boo, boo2, meteor, meteor2, heart, heart2 added
 let allImagesLoaded = false;
 
 Object.values(images).forEach(img => {
@@ -478,6 +482,67 @@ class Cloud {
     }
 }
 
+// HEALTH FEATURE
+class HealthSystem {
+    constructor() {
+        this.maxHealth = 3;
+        this.currentHealth = this.maxHealth;
+        this.invincibleDuration = 120; // 2 seconds at 60fps
+        this.invincibleTimer = 0;
+        this.blinkInterval = 10; // Blink every 10 frames
+    }
+
+    reset() {
+        this.currentHealth = this.maxHealth;
+        this.invincibleTimer = 0;
+    }
+
+    takeDamage() {
+        if (this.invincibleTimer > 0) return false;
+
+        this.currentHealth--;
+        if (this.currentHealth > 0) {
+            this.invincibleTimer = this.invincibleDuration;
+            return false;
+        } else {
+            return true; // Game Over
+        }
+    }
+
+    update() {
+        if (this.invincibleTimer > 0) {
+            this.invincibleTimer--;
+        }
+    }
+
+    isInvincible() {
+        return this.invincibleTimer > 0;
+    }
+
+    shouldDrawPlayer() {
+        // If not invincible, always draw
+        if (this.invincibleTimer <= 0) return true;
+
+        // Blink effect: draw only if in specific intervals
+        return Math.floor(this.invincibleTimer / this.blinkInterval) % 2 === 0;
+    }
+
+    draw() {
+        if (!allImagesLoaded) return;
+
+        const startX = 10;
+        const startY = 10;
+        const spacing = 5;
+        const heartWidth = images.heart.width;
+
+        for (let i = 0; i < this.maxHealth; i++) {
+            let img = (i < this.currentHealth) ? images.heart : images.heartEmpty;
+            ctx.drawImage(img, startX + (heartWidth + spacing) * i, startY);
+        }
+    }
+}
+// HEALTH FEATURE
+
 // 지평선 클래스
 class Horizon {
     constructor() {
@@ -585,6 +650,7 @@ class GameOverPanel {
 
 // 게임 객체들
 const trex = new Trex();
+const healthSystem = new HealthSystem(); // HEALTH FEATURE
 const horizon = new Horizon();
 const scoreBoard = new ScoreBoard();
 const gameOverPanel = new GameOverPanel();
@@ -749,8 +815,13 @@ function update() {
     meteors.forEach(meteor => { // METEOR FEATURE
         meteor.update(); // METEOR FEATURE
         if (meteor.collidesWith(trex)) { // METEOR FEATURE
-            gameOver = true; // METEOR FEATURE
-            trex.crashed = true; // METEOR FEATURE
+            // HEALTH FEATURE: Modified collision logic
+            if (!healthSystem.isInvincible()) {
+                if (healthSystem.takeDamage()) {
+                    gameOver = true;
+                    trex.crashed = true;
+                }
+            }
         } // METEOR FEATURE
     }); // METEOR FEATURE
     meteors = meteors.filter(meteor => !meteor.remove); // METEOR FEATURE
@@ -779,14 +850,19 @@ function update() {
         obstacle.update();
 
         if (!trex.crashed && obstacle.collidesWith(trex)) {
-            trex.crashed = true;
-            gameOver = true;
+            // HEALTH FEATURE: Modified collision logic
+            if (!healthSystem.isInvincible()) {
+                if (healthSystem.takeDamage()) {
+                    trex.crashed = true;
+                    gameOver = true;
 
-            // 최고 점수 저장
-            const finalScore = Math.floor(distanceRan * 0.025);
-            if (finalScore > highScore) {
-                highScore = finalScore;
-                localStorage.setItem('highScore', highScore);
+                    // 최고 점수 저장 (게임 오버 시에만)
+                    const finalScore = Math.floor(distanceRan * 0.025);
+                    if (finalScore > highScore) {
+                        highScore = finalScore;
+                        localStorage.setItem('highScore', highScore);
+                    }
+                }
             }
         }
     });
@@ -795,6 +871,9 @@ function update() {
     // 폭발 업데이트
     explosions.forEach(exp => exp.update());
     explosions = explosions.filter(exp => !exp.remove);
+
+    // HEALTH FEATURE: Update health system
+    healthSystem.update();
 }
 
 // 게임 그리기
@@ -823,13 +902,20 @@ function draw() {
     obstacles.forEach(obstacle => obstacle.draw());
 
     // 공룡
-    trex.draw();
+    // HEALTH FEATURE: Blink effect
+    if (healthSystem.shouldDrawPlayer()) {
+        trex.draw();
+    }
 
     // 폭발 (밤 모드 반전 효과 전후 위치 고려 - 반전 효과 전에 그려야 밤 모드에서 색 반전이 일어남)
     explosions.forEach(exp => exp.draw());
 
     // 점수
+    // 점수
     scoreBoard.draw();
+
+    // HEALTH FEATURE: Draw hearts
+    healthSystem.draw();
 
     // 게임 오버
     if (gameOver) {
@@ -875,6 +961,7 @@ function reset() {
     meteors = []; // METEOR FEATURE
     explosions = [];
     trex.reset();
+    healthSystem.reset(); // HEALTH FEATURE
     isNightMode = false;
     nightModeTransition = 1;
     lastNightModeChange = 0;
