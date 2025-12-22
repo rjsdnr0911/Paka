@@ -533,11 +533,11 @@ class HealthSystem {
         const startX = 10;
         const startY = 10;
         const spacing = 5;
-        const heartWidth = images.heart.width;
+        const heartSize = 20; // 하트 크기를 고정 (공룡 44px 보다 작게)
 
         for (let i = 0; i < this.maxHealth; i++) {
             let img = (i < this.currentHealth) ? images.heart : images.heartEmpty;
-            ctx.drawImage(img, startX + (heartWidth + spacing) * i, startY);
+            ctx.drawImage(img, startX + (heartSize + spacing) * i, startY, heartSize, heartSize);
         }
     }
 }
