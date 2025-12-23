@@ -114,6 +114,11 @@ const SPEED = 6;
 const MAX_SPEED = 13;
 const ACCELERATION = 0.001;
 
+// 화산 관련 상수 // VOLCANO FEATURE
+const VOLCANO_SCALE = 0.25; // 기존 대비 1/4 크기
+const WARNING_SCALE = 0.25; // 기존 대비 1/4 크기
+const VOLCANO_SPAWN_PROBABILITY = 0.15; // 15% 확률
+
 // 게임 변수
 let isRunning = false;
 let gameOver = false;
@@ -477,9 +482,9 @@ class Volcano {
         this.timer = 60; // 1 second warning at 60fps
         this.remove = false;
 
-        // Initial dimensions for caution icon
-        this.width = images.caution.width || 30;
-        this.height = images.caution.height || 30;
+        // Initial dimensions for caution icon with scale
+        this.width = (images.caution.width || 30) * WARNING_SCALE;
+        this.height = (images.caution.height || 30) * WARNING_SCALE;
         this.y = 145 - this.height;
 
         this.animFrame = 0;
@@ -493,9 +498,9 @@ class Volcano {
             this.timer--;
             if (this.timer <= 0) {
                 this.state = 'ACTIVE';
-                // Switch to volcano dimensions
-                this.width = images.volcano1.width;
-                this.height = images.volcano1.height;
+                // Switch to volcano dimensions and adjust y
+                this.width = images.volcano1.width * VOLCANO_SCALE;
+                this.height = images.volcano1.height * VOLCANO_SCALE;
                 this.y = 145 - this.height;
             }
         } else {
@@ -516,22 +521,26 @@ class Volcano {
         if (!allImagesLoaded) return;
 
         let img;
+        let drawScale;
         if (this.state === 'WARNING') {
             img = images.caution;
+            drawScale = WARNING_SCALE;
         } else {
             const volcanoImages = [images.volcano1, images.volcano2, images.volcano3];
             img = volcanoImages[this.animFrame];
+            drawScale = VOLCANO_SCALE;
         }
 
-        // Apply alpha if needed, but here simple draw
-        ctx.drawImage(img, this.x, this.y);
+        // drawImage with scaled dimensions
+        ctx.drawImage(img, this.x, this.y, img.width * drawScale, img.height * drawScale);
     }
 
     collidesWith(trex) {
         if (this.state === 'WARNING') return false;
 
         const trexBox = trex.getHitbox();
-        const buffer = 10; // Similar to cactus hitbox logic
+        // Scale buffer with volcano size
+        const buffer = 10 * VOLCANO_SCALE;
 
         const obsBox = {
             x: this.x + buffer,
@@ -796,7 +805,7 @@ function spawnObstacle() {
     }
 
     // VOLCANO FEATURE: Spawn volcano after 300 points
-    if (score > 300 && Math.random() < 0.15) {
+    if (score > 300 && Math.random() < VOLCANO_SPAWN_PROBABILITY) {
         obstacles.push(new Volcano());
         return; // Avoid spawning both cactus and volcano in the same frame if possible
     }
