@@ -993,16 +993,17 @@ function update() {
     // 공룡 업데이트
     trex.update();
 
-    // [DEBUG] 400점 이상 무조건 몬스터 이벤트 발생 (확률 제거)
-    /* 
-    if (score >= 400 && lightningTimer === 0) {
-        lightningTimer = 60; // 1초 (60fps 기준)
+    // [수정] MONSTER EVENT: 400점 이상 시 이벤트 발생 (0.3초 지속)
+    if (score >= 400 && lightningTimer === 0 && Math.random() < MONSTER_EVENT_PROBABILITY) {
+        lightningTimer = 20; // 약 0.33초 (60fps 기준 20프레임)
         lightningX = GAME_WIDTH / 2 + Math.random() * (GAME_WIDTH / 2 - 100);
-        obstacles.push(new Monster(lightningX));
 
-        console.log(`[DEBUG] Lightning spawned! score: ${score}, x: ${lightningX}`); // 콘솔 로그 추가
+        // 안전하게 Monster 객체 생성 및 추가
+        if (typeof Monster !== 'undefined') {
+            obstacles.push(new Monster(lightningX));
+            console.log(`[EVENT] Monster & Lightning spawned! Score: ${score}, X: ${lightningX}`);
+        }
     }
-    */
 
     if (lightningTimer > 0) {
         lightningTimer--;
@@ -1107,13 +1108,11 @@ function draw() {
     // 메테오 그리기 // METEOR FEATURE
     meteors.forEach(meteor => meteor.draw()); // METEOR FEATURE
 
-    // [수정] MONSTER EVENT: 색 반전 효과 시작
-    /*
+    // [수정] MONSTER EVENT: 색 반전 효과 (번개 지속 시간 동안)
     if (lightningTimer > 0) {
         ctx.save();
         ctx.filter = 'invert(1)';
     }
-    */
 
     // 모든 객체 그리기
     horizon.draw();
@@ -1134,18 +1133,19 @@ function draw() {
     // 점수
     scoreBoard.draw();
 
-    // [추가] MONSTER EVENT: 번개를 가장 마지막에(위에) 그림
-    /*
-    if (lightningTimer > 0) {
+    // [수정] MONSTER EVENT: 번개 그리기 (색 반전 ctx 내에서 수행)
+    if (lightningTimer > 0 && allImagesLoaded) {
         // 번개 이미지 애니메이션 (1, 2, 3 순환)
-        const lImg = [images.lightning1, images.lightning2, images.lightning3][Math.floor(frameCount / 3) % 3];
-        const lWidth = 40;
-        const lHeight = GAME_HEIGHT;
-        ctx.drawImage(lImg, lightningX + (60 - lWidth) / 2, 0, lWidth, lHeight);
+        const lightningImages = [images.lightning1, images.lightning2, images.lightning3];
+        const lImg = lightningImages[Math.floor(frameCount / 3) % 3];
 
+        if (lImg && lImg.complete) {
+            const lWidth = 40;
+            const lHeight = GAME_HEIGHT;
+            ctx.drawImage(lImg, lightningX + (60 - lWidth) / 2, 0, lWidth, lHeight);
+        }
         ctx.restore();
     }
-    */
 
     // HEALTH FEATURE: Draw hearts
     healthSystem.draw();
