@@ -489,6 +489,10 @@ class Volcano {
         this.height = (images.caution.height || 30) * WARNING_SCALE;
         this.y = this.groundY - this.height + VOLCANO_Y_OFFSET; // Anchor to bottom with offset
 
+        // [추가] 고정 히트박스 크기 (가장 기본인 volcano1 기준)
+        this.hitboxWidth = images.volcano1.width * VOLCANO_SCALE;
+        this.hitboxHeight = images.volcano1.height * VOLCANO_SCALE;
+
         this.animFrame = 0;
         this.animDelay = 0;
     }
@@ -549,14 +553,15 @@ class Volcano {
         if (this.state === 'WARNING') return false;
 
         const trexBox = trex.getHitbox();
-        // Scale buffer with volcano size
+        // Scale buffer with volcano size (using fixed hitbox size)
         const buffer = 10 * VOLCANO_SCALE;
 
+        // [수정] 애니메이션 프레임에 상관없이 고정된 히트박스 좌표/크기 사용
         const obsBox = {
             x: this.x + buffer,
-            y: this.y + buffer,
-            width: this.width - buffer * 2,
-            height: this.height - buffer * 2
+            y: (this.groundY - this.hitboxHeight + VOLCANO_Y_OFFSET) + buffer,
+            width: this.hitboxWidth - buffer * 2,
+            height: this.hitboxHeight - buffer * 2
         };
 
         return !(
