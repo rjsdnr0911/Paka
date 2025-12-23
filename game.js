@@ -117,6 +117,7 @@ const ACCELERATION = 0.001;
 // 화산 관련 상수 // VOLCANO FEATURE
 const VOLCANO_SCALE = 0.4; // 선인장과 비슷한 위압감을 위해 확대
 const VOLCANO_Y_OFFSET = 12; // [추가] 이미지 하단 여백을 없애기 위한 Y축 보정값 (12px 아래로)
+const VOLCANO_WARNING_DISPLAY_FRAMES = 15; // [추가] 경고 아이콘 표시 시간 (약 0.25초)
 const WARNING_SCALE = 0.25; // 경고 이미지는 기존 크기 유지
 const VOLCANO_SPAWN_PROBABILITY = 0.4; // 15% -> 40% 확률로 대폭 상향
 
@@ -534,19 +535,20 @@ class Volcano {
     draw() {
         if (!allImagesLoaded) return;
 
-        let img;
-        let drawScale;
         if (this.state === 'WARNING') {
-            img = images.caution;
-            drawScale = WARNING_SCALE;
+            // [수정] 경고 상태 시작 후 처음 15프레임(약 0.25초) 동안만 아이콘을 그림
+            if (60 - this.timer < VOLCANO_WARNING_DISPLAY_FRAMES) {
+                const img = images.caution;
+                const drawScale = WARNING_SCALE;
+                ctx.drawImage(img, this.x, this.y, img.width * drawScale, img.height * drawScale);
+            }
         } else {
             const volcanoImages = [images.volcano1, images.volcano2, images.volcano3];
-            img = volcanoImages[this.animFrame];
-            drawScale = VOLCANO_SCALE;
+            const img = volcanoImages[this.animFrame];
+            const drawScale = VOLCANO_SCALE;
+            // Use this.y which is calculated in update() to be anchored to groundY
+            ctx.drawImage(img, this.x, this.y, img.width * drawScale, img.height * drawScale);
         }
-
-        // Use this.y which is calculated in update() to be anchored to groundY
-        ctx.drawImage(img, this.x, this.y, img.width * drawScale, img.height * drawScale);
     }
 
     collidesWith(trex) {
