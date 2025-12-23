@@ -119,7 +119,7 @@ const VOLCANO_SCALE = 0.4; // 선인장과 비슷한 위압감을 위해 확대
 const VOLCANO_Y_OFFSET = 12; // [추가] 이미지 하단 여백을 없애기 위한 Y축 보정값 (12px 아래로)
 const VOLCANO_WARNING_DISPLAY_FRAMES = 15; // [추가] 경고 아이콘 표시 시간 (약 0.25초)
 const WARNING_SCALE = 0.25; // 경고 이미지는 기존 크기 유지
-const VOLCANO_SPAWN_PROBABILITY = 0.1; // 40% -> 10% 확률로 하향 조정
+const VOLCANO_SPAWN_PROBABILITY = 0.05; // 10% -> 5% 확률로 추가 하향 조정
 
 // 게임 변수
 let isRunning = false;
