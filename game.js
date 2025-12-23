@@ -116,6 +116,7 @@ const ACCELERATION = 0.001;
 
 // 화산 관련 상수 // VOLCANO FEATURE
 const VOLCANO_SCALE = 0.4; // 선인장과 비슷한 위압감을 위해 확대
+const VOLCANO_Y_OFFSET = 12; // [추가] 이미지 하단 여백을 없애기 위한 Y축 보정값 (12px 아래로)
 const WARNING_SCALE = 0.25; // 경고 이미지는 기존 크기 유지
 const VOLCANO_SPAWN_PROBABILITY = 0.4; // 15% -> 40% 확률로 대폭 상향
 
@@ -486,7 +487,7 @@ class Volcano {
         // Initial dimensions for caution icon with scale
         this.width = (images.caution.width || 30) * WARNING_SCALE;
         this.height = (images.caution.height || 30) * WARNING_SCALE;
-        this.y = this.groundY - this.height; // Anchor to bottom
+        this.y = this.groundY - this.height + VOLCANO_Y_OFFSET; // Anchor to bottom with offset
 
         this.animFrame = 0;
         this.animDelay = 0;
@@ -500,7 +501,7 @@ class Volcano {
             // Caution icon height is constant, but let's keep it robust
             this.width = images.caution.width * WARNING_SCALE;
             this.height = images.caution.height * WARNING_SCALE;
-            this.y = this.groundY - this.height;
+            this.y = this.groundY - this.height + VOLCANO_Y_OFFSET;
 
             if (this.timer <= 0) {
                 this.state = 'ACTIVE';
@@ -518,7 +519,7 @@ class Volcano {
             const currentImg = volcanoImages[this.animFrame];
             this.width = currentImg.width * VOLCANO_SCALE;
             this.height = currentImg.height * VOLCANO_SCALE;
-            this.y = this.groundY - this.height; // Always keep bottom at groundY
+            this.y = this.groundY - this.height + VOLCANO_Y_OFFSET; // Always keep bottom at groundY + offset
         }
 
         if (this.x + this.width + 100 < 0) { // Extra margin for large volcanoes
