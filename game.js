@@ -115,8 +115,8 @@ const MAX_SPEED = 13;
 const ACCELERATION = 0.001;
 
 // 화산 관련 상수 // VOLCANO FEATURE
-const VOLCANO_SCALE = 0.25; // 기존 대비 1/4 크기
-const WARNING_SCALE = 0.25; // 기존 대비 1/4 크기
+const VOLCANO_SCALE = 0.4; // 선인장과 비슷한 위압감을 위해 확대
+const WARNING_SCALE = 0.25; // 경고 이미지는 기존 크기 유지
 const VOLCANO_SPAWN_PROBABILITY = 0.4; // 15% -> 40% 확률로 대폭 상향
 
 // 게임 변수
@@ -485,7 +485,7 @@ class Volcano {
         // Initial dimensions for caution icon with scale
         this.width = (images.caution.width || 30) * WARNING_SCALE;
         this.height = (images.caution.height || 30) * WARNING_SCALE;
-        this.y = 145 - this.height;
+        this.y = 135 - this.height; // groundY(135)에 맞춤
 
         this.animFrame = 0;
         this.animDelay = 0;
@@ -501,7 +501,7 @@ class Volcano {
                 // Switch to volcano dimensions and adjust y
                 this.width = images.volcano1.width * VOLCANO_SCALE;
                 this.height = images.volcano1.height * VOLCANO_SCALE;
-                this.y = 145 - this.height;
+                this.y = 135 - this.height; // groundY(135)에 맞춤
             }
         } else {
             // Volcano animation
