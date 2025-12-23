@@ -117,7 +117,7 @@ const ACCELERATION = 0.001;
 // 화산 관련 상수 // VOLCANO FEATURE
 const VOLCANO_SCALE = 0.25; // 기존 대비 1/4 크기
 const WARNING_SCALE = 0.25; // 기존 대비 1/4 크기
-const VOLCANO_SPAWN_PROBABILITY = 0.15; // 15% 확률
+const VOLCANO_SPAWN_PROBABILITY = 0.4; // 15% -> 40% 확률로 대폭 상향
 
 // 게임 변수
 let isRunning = false;
