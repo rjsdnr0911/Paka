@@ -33,7 +33,6 @@ const images = {
     button: new Image(),
     boo: new Image(),
     boo2: new Image(),
-    flagPaka: new Image(), // FLAG FEATURE
     numbers: []
 };
 
@@ -64,7 +63,6 @@ images.hi.src = 'hi.png';
 images.button.src = 'button.png';
 images.boo.src = 'boo.png';
 images.boo2.src = 'boo2.png';
-images.flagPaka.src = 'flag_paka.png'; // FLAG FEATURE
 images.meteor = new Image(); // METEOR FEATURE
 images.meteor.src = 'meteor.png'; // METEOR FEATURE
 images.meteor2 = new Image(); // METEOR FEATURE
@@ -76,7 +74,7 @@ images.heartEmpty.src = 'heart2.png'; // HEALTH FEATURE
 
 // 이미지 로드 완료 체크
 let imagesLoaded = 0;
-let totalImages = 35;  // flagPaka added (34 -> 35)
+let totalImages = 34;
 let allImagesLoaded = false;
 
 Object.values(images).forEach(img => {
@@ -133,7 +131,6 @@ class Trex {
         this.crashed = false;
         this.animFrame = 0;
         this.animFrameDelay = 0;
-        this.isBird = false; // TRANSFORMATION FEATURE
     }
 
     update() {
@@ -195,11 +192,6 @@ class Trex {
         } else if (this.ducking) {
             img = this.animFrame === 0 ? images.dinoDown : images.dinoDown2;
             yPos = this.groundY + 4;  // 숙인 자세를 위로 올려 땅과 자연스럽게 닿도록 조정
-        } else if (this.isBird) {
-            // TRANSFORMATION FEATURE: Use bird sprites
-            img = this.animFrame === 0 ? images.bird : images.bird2;
-            // Adjust yPos for bird sprite if necessary, though original bird height variation exists.
-            // For the player-bird, we keep it at its current Y.
         } else {
             if (this.jumping) {
                 img = images.dino;
@@ -239,7 +231,6 @@ class Trex {
         this.ducking = false;
         this.crashed = false;
         this.animFrame = 0;
-        this.isBird = false; // TRANSFORMATION FEATURE
     }
 }
 
@@ -491,44 +482,6 @@ class Cloud {
     }
 }
 
-// FLAG FEATURE
-class FlagPaka {
-    constructor() {
-        this.image = images.flagPaka;
-        this.width = this.image.width;
-        this.height = this.image.height;
-        this.x = GAME_WIDTH + 50;
-        this.y = 0; // Top aligned
-        this.remove = false;
-
-        // Large, unavoidable size - scaling up if necessary to cover the screen
-        // But the prompt says "large size that the dino cannot avoid"
-        // Let's ensure it covers from top to ground.
-        this.displayHeight = GAME_HEIGHT;
-        this.displayWidth = this.width * (this.displayHeight / this.height);
-    }
-
-    update() {
-        this.x -= currentSpeed;
-        if (this.x + this.displayWidth < 0) {
-            this.remove = true;
-        }
-    }
-
-    draw() {
-        if (!allImagesLoaded) return;
-        ctx.drawImage(this.image, this.x, this.y, this.displayWidth, this.displayHeight);
-    }
-
-    collidesWith(trex) {
-        // Simple hitbox for the flag (unavoidable)
-        return (
-            trex.x < this.x + this.displayWidth &&
-            trex.x + trex.width > this.x
-        );
-    }
-}
-
 // HEALTH FEATURE
 class HealthSystem {
     constructor() {
@@ -708,8 +661,6 @@ let meteors = []; // METEOR FEATURE
 let obstacleTimer = 0;
 let cloudTimer = 0;
 let nextObstacleGap = 0;
-let pakaFlag = null; // FLAG FEATURE
-let hasSpawnedFlag = false; // FLAG FEATURE
 
 // 모바일 대응
 let scale = 1;
@@ -834,22 +785,6 @@ function update() {
     frameCount++;
     distanceRan += currentSpeed;
     const score = Math.floor(distanceRan * 0.025);
-
-    // FLAG FEATURE: Spawn flag at 500 points
-    if (score >= 500 && !hasSpawnedFlag) {
-        pakaFlag = new FlagPaka();
-        hasSpawnedFlag = true;
-    }
-
-    if (pakaFlag) {
-        pakaFlag.update();
-        if (pakaFlag.collidesWith(trex)) {
-            trex.isBird = true; // TRANSFORMATION!
-        }
-        if (pakaFlag.remove) {
-            pakaFlag = null;
-        }
-    }
 
     // 낮/밤 모드 체크
     checkNightMode();
@@ -976,11 +911,6 @@ function draw() {
     // 폭발 (밤 모드 반전 효과 전후 위치 고려 - 반전 효과 전에 그려야 밤 모드에서 색 반전이 일어남)
     explosions.forEach(exp => exp.draw());
 
-    // 깃발 그리기 // FLAG FEATURE
-    if (pakaFlag) {
-        pakaFlag.draw();
-    }
-
     // 점수
     // 점수
     scoreBoard.draw();
@@ -1031,8 +961,6 @@ function reset() {
     clouds = [];
     meteors = []; // METEOR FEATURE
     explosions = [];
-    pakaFlag = null; // FLAG FEATURE
-    hasSpawnedFlag = false; // FLAG FEATURE
     trex.reset();
     healthSystem.reset(); // HEALTH FEATURE
     isNightMode = false;
