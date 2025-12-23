@@ -767,8 +767,8 @@ class Horizon {
 
         for (let i = 0; i < numTiles; i++) {
             const x = this.offset + (i * tileWidth);
-            // [수정] 빈 공간(seam) 발생 방지를 위해 2픽섹 더 넓게 그림 (Overdraw)
-            ctx.drawImage(images.ground, x, this.groundY, tileWidth + 2, images.ground.height);
+            // [수정] 빈 공간(seam) 발생 방지를 위해 10픽셀 더 넓게 그림 (Overdraw 강화)
+            ctx.drawImage(images.ground, x, this.groundY, tileWidth + 10, images.ground.height);
         }
     }
 }
