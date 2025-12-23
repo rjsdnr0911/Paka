@@ -116,7 +116,7 @@ const ACCELERATION = 0.001;
 
 // 화산 관련 상수 // VOLCANO FEATURE
 const VOLCANO_SCALE = 0.4; // 선인장과 비슷한 위압감을 위해 확대
-const VOLCANO_Y_OFFSET = 20; // [추가] 이미지 하단 여백을 없애기 위한 Y축 보정값 (12px 아래로)
+const VOLCANO_Y_OFFSET = 12; // [추가] 이미지 하단 여백을 없애기 위한 Y축 보정값 (12px 아래로)
 const WARNING_SCALE = 0.25; // 경고 이미지는 기존 크기 유지
 const VOLCANO_SPAWN_PROBABILITY = 0.4; // 15% -> 40% 확률로 대폭 상향
 
