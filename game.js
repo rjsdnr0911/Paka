@@ -133,7 +133,7 @@ const VOLCANO_Y_OFFSET = 12; // [추가] 이미지 하단 여백을 없애기 �
 const VOLCANO_WARNING_DISPLAY_FRAMES = 15; // [추가] 경고 아이콘 표시 시간 (약 0.25초)
 const WARNING_SCALE = 0.25; // 경고 이미지는 기존 크기 유지
 const VOLCANO_SPAWN_PROBABILITY = 0.05; // 10% -> 5% 확률로 추가 하향 조정
-const MONSTER_EVENT_PROBABILITY = 0.02; // [추가] 몬STER 이벤트 발생 확률 (~2% 수준으로 상향)
+const MONSTER_EVENT_PROBABILITY = 0.003; // [수정] 몬스터 이벤트 발생 확률 (~0.3% 수준으로 하향)
 
 // 게임 변수
 let isRunning = false;
