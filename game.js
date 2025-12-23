@@ -28,6 +28,10 @@ const images = {
     cactus5: new Image(),
     cloud: new Image(),
     ground: new Image(),
+    volcano1: new Image(),
+    volcano2: new Image(),
+    volcano3: new Image(),
+    caution: new Image(),
     gameover: new Image(),
     hi: new Image(),
     button: new Image(),
@@ -63,6 +67,10 @@ images.hi.src = 'hi.png';
 images.button.src = 'button.png';
 images.boo.src = 'boo.png';
 images.boo2.src = 'boo2.png';
+images.caution.src = 'caution.png';
+images.volcano1.src = 'volcano.png';
+images.volcano2.src = 'volcano2.png';
+images.volcano3.src = 'volcano3.png';
 images.meteor = new Image(); // METEOR FEATURE
 images.meteor.src = 'meteor.png'; // METEOR FEATURE
 images.meteor2 = new Image(); // METEOR FEATURE
@@ -74,7 +82,7 @@ images.heartEmpty.src = 'heart2.png'; // HEALTH FEATURE
 
 // 이미지 로드 완료 체크
 let imagesLoaded = 0;
-let totalImages = 34;
+let totalImages = 38; // 34 + 4 (caution, volcano1, 2, 3)
 let allImagesLoaded = false;
 
 Object.values(images).forEach(img => {
@@ -460,6 +468,88 @@ class Meteor {
 }
 // METEOR FEATURE
 
+// VOLCANO FEATURE
+class Volcano {
+    constructor() {
+        this.type = 'VOLCANO';
+        this.x = GAME_WIDTH + 50;
+        this.state = 'WARNING'; // 'WARNING' or 'ACTIVE'
+        this.timer = 60; // 1 second warning at 60fps
+        this.remove = false;
+
+        // Initial dimensions for caution icon
+        this.width = images.caution.width || 30;
+        this.height = images.caution.height || 30;
+        this.y = 145 - this.height;
+
+        this.animFrame = 0;
+        this.animDelay = 0;
+    }
+
+    update() {
+        this.x -= currentSpeed;
+
+        if (this.state === 'WARNING') {
+            this.timer--;
+            if (this.timer <= 0) {
+                this.state = 'ACTIVE';
+                // Switch to volcano dimensions
+                this.width = images.volcano1.width;
+                this.height = images.volcano1.height;
+                this.y = 145 - this.height;
+            }
+        } else {
+            // Volcano animation
+            this.animDelay++;
+            if (this.animDelay > 10) {
+                this.animFrame = (this.animFrame + 1) % 3;
+                this.animDelay = 0;
+            }
+        }
+
+        if (this.x + this.width + 100 < 0) { // Extra margin for large volcanoes
+            this.remove = true;
+        }
+    }
+
+    draw() {
+        if (!allImagesLoaded) return;
+
+        let img;
+        if (this.state === 'WARNING') {
+            img = images.caution;
+        } else {
+            const volcanoImages = [images.volcano1, images.volcano2, images.volcano3];
+            img = volcanoImages[this.animFrame];
+        }
+
+        // Apply alpha if needed, but here simple draw
+        ctx.drawImage(img, this.x, this.y);
+    }
+
+    collidesWith(trex) {
+        if (this.state === 'WARNING') return false;
+
+        const trexBox = trex.getHitbox();
+        const buffer = 10; // Similar to cactus hitbox logic
+
+        const obsBox = {
+            x: this.x + buffer,
+            y: this.y + buffer,
+            width: this.width - buffer * 2,
+            height: this.height - buffer * 2
+        };
+
+        return !(
+            trexBox.x + trexBox.width < obsBox.x ||
+            trexBox.x > obsBox.x + obsBox.width ||
+            trexBox.y + trexBox.height < obsBox.y ||
+            trexBox.y > obsBox.y + obsBox.height
+        );
+    }
+}
+// VOLCANO FEATURE
+
 // 구름 클래스
 class Cloud {
     constructor() {
@@ -703,6 +793,12 @@ function spawnObstacle() {
     let isRising = false;
     if (type === 'CACTUS' && score > 100 && Math.random() < 0.2) {
         isRising = true;
+    }
+
+    // VOLCANO FEATURE: Spawn volcano after 300 points
+    if (score > 300 && Math.random() < 0.15) {
+        obstacles.push(new Volcano());
+        return; // Avoid spawning both cactus and volcano in the same frame if possible
     }
 
     obstacles.push(new Obstacle(type, isRising));
