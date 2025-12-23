@@ -992,11 +992,13 @@ function update() {
     // 공룡 업데이트
     trex.update();
 
-    // [수정] 400점 이상 몬스터 이벤트 (번개 + 색반전 + 몬스터)
-    if (score >= 400 && Math.random() < MONSTER_EVENT_PROBABILITY && lightningTimer === 0) {
-        lightningTimer = 18; // 약 0.3초 (60fps 기준)
+    // [DEBUG] 400점 이상 무조건 몬스터 이벤트 발생 (확률 제거)
+    if (score >= 400 && lightningTimer === 0) {
+        lightningTimer = 60; // 1초 (60fps 기준)
         lightningX = GAME_WIDTH / 2 + Math.random() * (GAME_WIDTH / 2 - 100);
         obstacles.push(new Monster(lightningX));
+
+        console.log(`[DEBUG] Lightning spawned! score: ${score}, x: ${lightningX}`); // 콘솔 로그 추가
     }
 
     if (lightningTimer > 0) {
