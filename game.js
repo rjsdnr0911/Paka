@@ -766,9 +766,10 @@ class Horizon {
         const numTiles = Math.ceil(GAME_WIDTH / tileWidth) + 2;  // 화면을 완전히 커버하기 위한 타일 개수
 
         for (let i = 0; i < numTiles; i++) {
-            const x = this.offset + (i * tileWidth);
-            // [수정] 빈 공간(seam) 발생 방지를 위해 10픽셀 더 넓게 그림 (Overdraw 강화)
-            ctx.drawImage(images.ground, x, this.groundY, tileWidth + 10, images.ground.height);
+            // [수정] 소수점 렌더링으로 인한 틈새 방지를 위해 Math.floor 사용
+            const x = Math.floor(this.offset + (i * tileWidth));
+            // [수정] 겹침(Overdraw)을 100픽셀로 대폭 늘려 확실하게 차단
+            ctx.drawImage(images.ground, x, this.groundY, tileWidth + 100, images.ground.height);
         }
     }
 }
