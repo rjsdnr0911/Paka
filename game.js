@@ -41,6 +41,7 @@ const images = {
     lightning1: new Image(), // MONSTER EVENT
     lightning2: new Image(), // MONSTER EVENT
     lightning3: new Image(), // MONSTER EVENT
+    gameover: new Image(),
     numbers: []
 };
 
@@ -993,6 +994,7 @@ function update() {
     trex.update();
 
     // [DEBUG] 400점 이상 무조건 몬스터 이벤트 발생 (확률 제거)
+    /* 
     if (score >= 400 && lightningTimer === 0) {
         lightningTimer = 60; // 1초 (60fps 기준)
         lightningX = GAME_WIDTH / 2 + Math.random() * (GAME_WIDTH / 2 - 100);
@@ -1000,6 +1002,7 @@ function update() {
 
         console.log(`[DEBUG] Lightning spawned! score: ${score}, x: ${lightningX}`); // 콘솔 로그 추가
     }
+    */
 
     if (lightningTimer > 0) {
         lightningTimer--;
@@ -1105,10 +1108,12 @@ function draw() {
     meteors.forEach(meteor => meteor.draw()); // METEOR FEATURE
 
     // [수정] MONSTER EVENT: 색 반전 효과 시작
+    /*
     if (lightningTimer > 0) {
         ctx.save();
         ctx.filter = 'invert(1)';
     }
+    */
 
     // 모든 객체 그리기
     horizon.draw();
@@ -1130,6 +1135,7 @@ function draw() {
     scoreBoard.draw();
 
     // [추가] MONSTER EVENT: 번개를 가장 마지막에(위에) 그림
+    /*
     if (lightningTimer > 0) {
         // 번개 이미지 애니메이션 (1, 2, 3 순환)
         const lImg = [images.lightning1, images.lightning2, images.lightning3][Math.floor(frameCount / 3) % 3];
@@ -1139,6 +1145,7 @@ function draw() {
 
         ctx.restore();
     }
+    */
 
     // HEALTH FEATURE: Draw hearts
     healthSystem.draw();
@@ -1195,8 +1202,14 @@ function reset() {
 
 // 게임 루프
 function gameLoop() {
-    update();
-    draw();
+    try {
+        update();
+        draw();
+    } catch (e) {
+        console.error("Game Loop Error:", e);
+        isRunning = false; // Stop the loop on fatal error
+        return;
+    }
     requestAnimationFrame(gameLoop);
 }
 
