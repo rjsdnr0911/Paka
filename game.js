@@ -481,11 +481,12 @@ class Volcano {
         this.state = 'WARNING'; // 'WARNING' or 'ACTIVE'
         this.timer = 60; // 1 second warning at 60fps
         this.remove = false;
+        this.groundY = 135; // Ground line (horizon.groundY is 135)
 
         // Initial dimensions for caution icon with scale
         this.width = (images.caution.width || 30) * WARNING_SCALE;
         this.height = (images.caution.height || 30) * WARNING_SCALE;
-        this.y = 135 - this.height; // groundY(135)에 맞춤
+        this.y = this.groundY - this.height; // Anchor to bottom
 
         this.animFrame = 0;
         this.animDelay = 0;
@@ -496,12 +497,13 @@ class Volcano {
 
         if (this.state === 'WARNING') {
             this.timer--;
+            // Caution icon height is constant, but let's keep it robust
+            this.width = images.caution.width * WARNING_SCALE;
+            this.height = images.caution.height * WARNING_SCALE;
+            this.y = this.groundY - this.height;
+
             if (this.timer <= 0) {
                 this.state = 'ACTIVE';
-                // Switch to volcano dimensions and adjust y
-                this.width = images.volcano1.width * VOLCANO_SCALE;
-                this.height = images.volcano1.height * VOLCANO_SCALE;
-                this.y = 135 - this.height; // groundY(135)에 맞춤
             }
         } else {
             // Volcano animation
@@ -510,6 +512,13 @@ class Volcano {
                 this.animFrame = (this.animFrame + 1) % 3;
                 this.animDelay = 0;
             }
+
+            // [FIX] Update dimensions and y based on CURRENT frame image to keep bottom anchored
+            const volcanoImages = [images.volcano1, images.volcano2, images.volcano3];
+            const currentImg = volcanoImages[this.animFrame];
+            this.width = currentImg.width * VOLCANO_SCALE;
+            this.height = currentImg.height * VOLCANO_SCALE;
+            this.y = this.groundY - this.height; // Always keep bottom at groundY
         }
 
         if (this.x + this.width + 100 < 0) { // Extra margin for large volcanoes
@@ -531,7 +540,7 @@ class Volcano {
             drawScale = VOLCANO_SCALE;
         }
 
-        // drawImage with scaled dimensions
+        // Use this.y which is calculated in update() to be anchored to groundY
         ctx.drawImage(img, this.x, this.y, img.width * drawScale, img.height * drawScale);
     }
 
