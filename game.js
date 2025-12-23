@@ -129,6 +129,7 @@ const VOLCANO_Y_OFFSET = 12; // [추가] 이미지 하단 여백을 없애기 �
 const VOLCANO_WARNING_DISPLAY_FRAMES = 15; // [추가] 경고 아이콘 표시 시간 (약 0.25초)
 const WARNING_SCALE = 0.25; // 경고 이미지는 기존 크기 유지
 const VOLCANO_SPAWN_PROBABILITY = 0.05; // 10% -> 5% 확률로 추가 하향 조정
+const MONSTER_EVENT_PROBABILITY = 0.02; // [추가] 몬STER 이벤트 발생 확률 (~2% 수준으로 상향)
 
 // 게임 변수
 let isRunning = false;
@@ -992,7 +993,7 @@ function update() {
     trex.update();
 
     // [수정] 400점 이상 몬스터 이벤트 (번개 + 색반전 + 몬스터)
-    if (score >= 400 && Math.random() < 0.003 && lightningTimer === 0) { // Probability adjusted slightly
+    if (score >= 400 && Math.random() < MONSTER_EVENT_PROBABILITY && lightningTimer === 0) {
         lightningTimer = 18; // 약 0.3초 (60fps 기준)
         lightningX = GAME_WIDTH / 2 + Math.random() * (GAME_WIDTH / 2 - 100);
         obstacles.push(new Monster(lightningX));
@@ -1101,16 +1102,10 @@ function draw() {
     // 메테오 그리기 // METEOR FEATURE
     meteors.forEach(meteor => meteor.draw()); // METEOR FEATURE
 
-    // [수정] MONSTER EVENT: Lightning 및 색 반전 효과
+    // [수정] MONSTER EVENT: 색 반전 효과 시작
     if (lightningTimer > 0) {
         ctx.save();
         ctx.filter = 'invert(1)';
-
-        // 번개 이미지 애니메이션 (1, 2, 3 순환)
-        const lImg = [images.lightning1, images.lightning2, images.lightning3][Math.floor(frameCount / 3) % 3];
-        const lWidth = 40;
-        const lHeight = GAME_HEIGHT;
-        ctx.drawImage(lImg, lightningX + (60 - lWidth) / 2, 0, lWidth, lHeight);
     }
 
     // 모든 객체 그리기
@@ -1132,7 +1127,14 @@ function draw() {
     // 점수
     scoreBoard.draw();
 
+    // [추가] MONSTER EVENT: 번개를 가장 마지막에(위에) 그림
     if (lightningTimer > 0) {
+        // 번개 이미지 애니메이션 (1, 2, 3 순환)
+        const lImg = [images.lightning1, images.lightning2, images.lightning3][Math.floor(frameCount / 3) % 3];
+        const lWidth = 40;
+        const lHeight = GAME_HEIGHT;
+        ctx.drawImage(lImg, lightningX + (60 - lWidth) / 2, 0, lWidth, lHeight);
+
         ctx.restore();
     }
 
