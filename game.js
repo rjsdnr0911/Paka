@@ -553,8 +553,9 @@ class Volcano {
         if (this.state === 'WARNING') return false;
 
         const trexBox = trex.getHitbox();
-        // Scale buffer with volcano size (using fixed hitbox size)
-        const buffer = 10 * VOLCANO_SCALE;
+        // [수정] 충돌 판정을 더 여유 있게 하기 위해 버퍼(여백) 크기를 대폭 늘림 (10 -> 30)
+        // 이를 통해 실제 보이는 이미지보다 훨씬 작은 중앙부만 히트박스로 사용함
+        const buffer = 30 * VOLCANO_SCALE;
 
         // [수정] 애니메이션 프레임에 상관없이 고정된 히트박스 좌표/크기 사용
         const obsBox = {
