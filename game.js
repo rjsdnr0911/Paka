@@ -90,6 +90,9 @@ images.lightning1.src = 'lightning1.png'; // MONSTER EVENT
 images.lightning2.src = 'lightning2.png'; // MONSTER EVENT
 images.lightning3.src = 'lightning3.png'; // MONSTER EVENT
 
+// [최적화] 빈번하게 사용되는 이미지 배열 캐싱
+const lightningImages = [images.lightning1, images.lightning2, images.lightning3];
+
 // 이미지 로드 완료 체크
 let imagesLoaded = 0;
 let totalImages = 43; // 38 + 5 (monster1, 2, lightning1, 2, 3)
@@ -1108,11 +1111,8 @@ function draw() {
     // 메테오 그리기 // METEOR FEATURE
     meteors.forEach(meteor => meteor.draw()); // METEOR FEATURE
 
-    // [수정] MONSTER EVENT: 색 반전 효과 (번개 지속 시간 동안)
-    if (lightningTimer > 0) {
-        ctx.save();
-        ctx.filter = 'invert(1)';
-    }
+    // [최적화] MONSTER EVENT: 색 반전 필터 제거 (하단에서 difference 합성으로 대체)
+
 
     // 모든 객체 그리기
     horizon.draw();
@@ -1133,10 +1133,9 @@ function draw() {
     // 점수
     scoreBoard.draw();
 
-    // [수정] MONSTER EVENT: 번개 그리기 (색 반전 ctx 내에서 수행)
+    // [수정] MONSTER EVENT: 번개 그리기 (최적화)
     if (lightningTimer > 0 && allImagesLoaded) {
-        // 번개 이미지 애니메이션 (1, 2, 3 순환)
-        const lightningImages = [images.lightning1, images.lightning2, images.lightning3];
+        // [캐싱된 배열 사용]
         const lImg = lightningImages[Math.floor(frameCount / 3) % 3];
 
         if (lImg && lImg.complete) {
@@ -1144,7 +1143,6 @@ function draw() {
             const lHeight = GAME_HEIGHT;
             ctx.drawImage(lImg, lightningX + (60 - lWidth) / 2, 0, lWidth, lHeight);
         }
-        ctx.restore();
     }
 
     // HEALTH FEATURE: Draw hearts
@@ -1155,9 +1153,12 @@ function draw() {
         gameOverPanel.draw();
     }
 
-    // 밤 모드 전환 (성능 최적화를 위해 difference 합성 연산 사용)
-    // 모든 요소를 그린 후 마지막에 한 번에 반전시켜 렉을 방지하고 효과를 극대화함
-    const invertAlpha = isNightMode ? nightModeTransition : (1 - nightModeTransition);
+    // [최적화] 색 반전 효과 통합 (밤 모드 및 번개 이벤트)
+    // 번개 이벤트 시에는 즉시 반전(1), 밤 모드 시에는 트랜지션 값 사용
+    const lightningInvert = (lightningTimer > 0) ? 1 : 0;
+    const nightModeInvert = isNightMode ? nightModeTransition : (1 - nightModeTransition);
+    const invertAlpha = Math.max(lightningInvert, nightModeInvert);
+
     if (invertAlpha > 0) {
         ctx.save();
         ctx.globalCompositeOperation = 'difference';
