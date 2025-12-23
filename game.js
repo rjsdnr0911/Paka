@@ -32,11 +32,15 @@ const images = {
     volcano2: new Image(),
     volcano3: new Image(),
     caution: new Image(),
-    gameover: new Image(),
     hi: new Image(),
     button: new Image(),
     boo: new Image(),
     boo2: new Image(),
+    monster: new Image(), // MONSTER EVENT
+    monster2: new Image(), // MONSTER EVENT
+    lightning1: new Image(), // MONSTER EVENT
+    lightning2: new Image(), // MONSTER EVENT
+    lightning3: new Image(), // MONSTER EVENT
     numbers: []
 };
 
@@ -79,10 +83,15 @@ images.heart = new Image(); // HEALTH FEATURE
 images.heart.src = 'heart.png'; // HEALTH FEATURE
 images.heartEmpty = new Image(); // HEALTH FEATURE
 images.heartEmpty.src = 'heart2.png'; // HEALTH FEATURE
+images.monster.src = 'illusion.png'; // MONSTER EVENT
+images.monster2.src = 'illusion2.png'; // MONSTER EVENT
+images.lightning1.src = 'lightning1.png'; // MONSTER EVENT
+images.lightning2.src = 'lightning2.png'; // MONSTER EVENT
+images.lightning3.src = 'lightning3.png'; // MONSTER EVENT
 
 // 이미지 로드 완료 체크
 let imagesLoaded = 0;
-let totalImages = 38; // 34 + 4 (caution, volcano1, 2, 3)
+let totalImages = 43; // 38 + 5 (monster1, 2, lightning1, 2, 3)
 let allImagesLoaded = false;
 
 Object.values(images).forEach(img => {
@@ -131,6 +140,8 @@ let frameCount = 0;
 let isNightMode = false;
 let nightModeTransition = 1;
 let lastNightModeChange = 0;
+let lightningTimer = 0; // MONSTER EVENT: duration (frames)
+let lightningX = 0; // MONSTER EVENT: strike position
 
 // 공룡 클래스
 class Trex {
@@ -577,7 +588,67 @@ class Volcano {
 }
 // VOLCANO FEATURE
 
-// 구름 클래스
+// MONSTER EVENT
+class Monster {
+    constructor(x) {
+        this.type = 'MONSTER';
+        this.x = x;
+        this.remove = false;
+        this.animFrame = 0;
+        this.animDelay = 0;
+
+        // Initial dimensions (based on first image)
+        this.width = 60; // Standard size for monster
+        this.height = 60;
+        this.y = 145 - this.height; // ground alignment
+
+        // Fixed hitbox (similar to volcano or slightly more forgiving)
+        this.hitboxWidth = 40;
+        this.hitboxHeight = 40;
+    }
+
+    update() {
+        this.x -= currentSpeed;
+
+        // Animation
+        this.animDelay++;
+        if (this.animDelay > 10) {
+            this.animFrame = this.animFrame === 0 ? 1 : 0;
+            this.animDelay = 0;
+        }
+
+        if (this.x + this.width < 0) {
+            this.remove = true;
+        }
+    }
+
+    draw() {
+        if (!allImagesLoaded) return;
+        const img = this.animFrame === 0 ? images.monster : images.monster2;
+        ctx.drawImage(img, this.x, this.y, this.width, this.height);
+    }
+
+    collidesWith(trex) {
+        const trexBox = trex.getHitbox();
+        const bufferX = (this.width - this.hitboxWidth) / 2;
+        const bufferY = (this.height - this.hitboxHeight) / 2;
+
+        const obsBox = {
+            x: this.x + bufferX,
+            y: this.y + bufferY,
+            width: this.hitboxWidth,
+            height: this.hitboxHeight
+        };
+
+        return !(
+            trexBox.x + trexBox.width < obsBox.x ||
+            trexBox.x > obsBox.x + obsBox.width ||
+            trexBox.y + trexBox.height < obsBox.y ||
+            trexBox.y > obsBox.y + obsBox.height
+        );
+    }
+}
+// MONSTER EVENT
 class Cloud {
     constructor() {
         this.x = GAME_WIDTH + Math.random() * 100;
@@ -920,6 +991,17 @@ function update() {
     // 공룡 업데이트
     trex.update();
 
+    // [수정] 400점 이상 몬스터 이벤트 (번개 + 색반전 + 몬스터)
+    if (score >= 400 && Math.random() < 0.003 && lightningTimer === 0) { // Probability adjusted slightly
+        lightningTimer = 18; // 약 0.3초 (60fps 기준)
+        lightningX = GAME_WIDTH / 2 + Math.random() * (GAME_WIDTH / 2 - 100);
+        obstacles.push(new Monster(lightningX));
+    }
+
+    if (lightningTimer > 0) {
+        lightningTimer--;
+    }
+
     // 지평선 업데이트
     horizon.update();
 
@@ -1019,7 +1101,19 @@ function draw() {
     // 메테오 그리기 // METEOR FEATURE
     meteors.forEach(meteor => meteor.draw()); // METEOR FEATURE
 
-    // 지평선
+    // [수정] MONSTER EVENT: Lightning 및 색 반전 효과
+    if (lightningTimer > 0) {
+        ctx.save();
+        ctx.filter = 'invert(1)';
+
+        // 번개 이미지 애니메이션 (1, 2, 3 순환)
+        const lImg = [images.lightning1, images.lightning2, images.lightning3][Math.floor(frameCount / 3) % 3];
+        const lWidth = 40;
+        const lHeight = GAME_HEIGHT;
+        ctx.drawImage(lImg, lightningX + (60 - lWidth) / 2, 0, lWidth, lHeight);
+    }
+
+    // 모든 객체 그리기
     horizon.draw();
 
     // 장애물
@@ -1037,6 +1131,10 @@ function draw() {
     // 점수
     // 점수
     scoreBoard.draw();
+
+    if (lightningTimer > 0) {
+        ctx.restore();
+    }
 
     // HEALTH FEATURE: Draw hearts
     healthSystem.draw();
